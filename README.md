@@ -157,12 +157,12 @@ pip install -r requirements.txt
   title   = {PBT — Paper 4 Pipeline},
   version = {v1.0.0},
   year    = {2025},
-  doi     = {10.5281/zenodo.XXXXXXX},
+  doi     = {10.5281/zenodo.17410201},
   url     = {https://doi.org/10.5281/zenodo.17410201}
 } 
 ```
 
----
+--- 
 
 ## 📝 License
 MIT (see `LICENSE`).
