@@ -27,8 +27,8 @@ plt.rcParams.update({
 # ----------------------------------------------------------
 # 1. Load the Excel file
 # ----------------------------------------------------------
-folder_path = globals.folder_path;
-file_name   = globals.file_name;   # <-- Change this to Day1.xlsx, Day2.xlsx, etc.
+folder_path = globals.folder_path
+file_name   = globals.file_name   # <-- Change this to Day1.xlsx, Day2.xlsx, etc.
 file_path   = os.path.join(folder_path, file_name)
 
 # Automatically extract the "Day" label (e.g., "Day 1" or "Day 2")
@@ -38,7 +38,6 @@ day_label  = f"Day {day_number}" if day_number else "Unknown Day"
 # Read the Excel data
 df = pd.read_excel(file_path)
 
-
 # ----------------------------------------------------------
 # 2. Define helper functions
 # ----------------------------------------------------------
@@ -46,12 +45,13 @@ def mmol_to_mgdl(value):
     """Convert mmol/L to mg/dL."""
     return value * 18.0182
 
-
 # ----------------------------------------------------------
 # 3. Extract subjects and compute metrics
 # ----------------------------------------------------------
 subjects = sorted(set(c.split("_")[-1] for c in df.columns))
 results = []
+
+eps = 1e-12  # numerical safety
 
 for subj in subjects:
     bg1 = df[f'BG_1_{subj}'].dropna()
@@ -67,10 +67,11 @@ for subj in subjects:
     mage2 = np.mean(np.abs(bg2 - 6))
     delta_mage = mage1 - mage2
 
-    # --- 3. Composite stability index ---
-    mean1 = bg1.mean()
-    mean2 = bg2.mean()
-    composite_index = (mean2 / mean1) + (std1 / std2) if std2 != 0 else np.nan
+    # --- 3. Composite stability index (GEOMETRIC MEAN of ratios) ---
+    # I = sqrt( (STD_before/STD_after) * (MAGE_before/MAGE_after) )
+    std_ratio  = (std1 + eps) / (std2 + eps)
+    mage_ratio = (mage1 + eps) / (mage2 + eps)
+    composite_index = np.sqrt(std_ratio * mage_ratio)
 
     # --- Store all results (both mmol/L and mg/dL) ---
     results.append({
@@ -85,14 +86,12 @@ for subj in subjects:
         'Composite_Index': composite_index
     })
 
-
 # ----------------------------------------------------------
 # 4. Create summary DataFrame
 # ----------------------------------------------------------
 df_results = pd.DataFrame(results)
 print(f"\n=== {day_label} Results Summary ===")
 print(df_results.round(3))
-
 
 # ==========================================================
 #  FIGURE 1 — Variability Before vs After (STD₁ vs STD₂)
@@ -122,7 +121,6 @@ ax2.set_ylabel("Blood Glucose (mg/dL)")
 plt.tight_layout()
 plt.show()
 
-
 # ==========================================================
 #  FIGURE 2 — ΔMAGE Improvement (Deviation from 6 mmol/L)
 # ==========================================================
@@ -143,7 +141,6 @@ ax2.set_ylabel("ΔMAGE (mg/dL)")
 
 plt.tight_layout()
 plt.show()
-
 
 # ==========================================================
 #  FIGURE 3 — Composite Stability Index per Subject

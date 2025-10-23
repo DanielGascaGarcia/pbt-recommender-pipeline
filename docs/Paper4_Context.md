@@ -1,27 +1,22 @@
-# Paper 4 Context — Recommending Optimised Basal Insulin Rates (PBT)
+# Paper 4 — Recommending Optimised Basal Insulin Rates (PBT)
 
-This deposit accompanies the manuscript describing Experiment 3, where the PBT algorithm
-recommends **redistributed** basal insulin profiles and evaluates them **in silico**. The study
-reports composite stability improvements (I > 1 for all 17 participants; strong‑response I > 1.8
-in ≈94% of cases) with preserved safety (bias near zero, ISO ±15% compliance) and minimal change
-in total basal insulin. The pipeline here captures that flow and the artefacts used to derive figures
-and metrics for the manuscript.
+This deposit accompanies the manuscript for **Experiment 3**, where the Personalised Basal Tuner (PBT) generates **24-hour basal adjustments** from real-world data and evaluates them **in silico** with Py-mgipsim. Across two simulated days per participant, the study shows **composite stability improvements** for almost all cases (**I > 1 in 16/17 participants** on both days), with **one participant with I < 1**. Safety is preserved (low bias; ISO ±15% style checks), and total basal insulin changes remain small.
 
-## High‑level flow
+## High-level flow
 
-1. **In vivo analysis** (real data)
-   - Parse CGM/pump logs, remove 6‑h post‑meal windows, build composite‑day profiles.
-   - Compute hourly **relative change**; estimate basal deficits/excess; summarise medians/outliers.
+1. **In-vivo analysis (real data)**
+   - Parse CGM/pump logs, exclude post-meal windows, and build composite-day profiles.
+   - Compute hourly **relative change** and identify residual deviations (deficit/excess).
 
 2. **Basal recommendation**
-   - Flatten residual composite deviations using an insulin‑on‑board (IOB) kernel to derive a
-     recommendation-based **recommendations** over 24 h (not dose escalation).
+   - Convert residual deviations into **conservative 24-h basal adjustments** using an insulin-on-board (IOB) kernel (no blanket dose escalation).
 
-3. **In silico evaluation**
-   - Map each real participant to the most comparable UVA/Padova virtual subject.
-   - Run Py‑mgipsim with meals; test the adjusted basal over 2 days; keep seeds fixed.
+3. **In-silico evaluation**
+   - Map each participant to a comparable virtual subject.
+   - Run **Py-mgipsim** with meals enabled; evaluate the adjusted profile over **2 days** with fixed seeds.
 
-4. **Metrics and visualisation**
-   - Boxplots by hour → ISO style bias ±15% → composite stability **I**, ΔMAGE, STD, TIR, bias, Δinsulin.
+4. **Metrics & figures**
+   - Variability (STD), excursion change (ΔMAGE-like), **Composite Stability Index (I)**, TIR, bias, and Δ basal insulin.
+   - Boxplots by hour; ISO-style bias ±15% view; per-subject tables and day-1/day-2 reproducibility.
 
-See each subfolder for exact commands and script order.
+> See each subfolder for exact script order and commands that reproduce manuscript figures and tables.
