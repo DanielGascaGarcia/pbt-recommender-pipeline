@@ -145,10 +145,10 @@ pip install -r requirements.txt
 
 ## 📌 Citation
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17420810.svg)](https://doi.org/10.5281/zenodo.17420810)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17467828.svg)](https://doi.org/10.5281/zenodo.17467828)
 
 **Manuscript**: *Paper 4 — Basal Rate Recommendations evaluated in-silico with Py-mgipsim.*  
-**Software (this repository)**: Gasca García, D. **PBT — Paper 4 Pipeline (v1.0.0)**. Zenodo/GitHub. DOI:https://doi.org/10.5281/zenodo.17420810
+**Software (this repository)**: Gasca García, D. **PBT — Paper 4 Pipeline (v1.0.0)**. Zenodo/GitHub. DOI:https://doi.org/10.5281/zenodo.17467828
 
 ### BibTeX
 ```bibtex
@@ -157,8 +157,8 @@ pip install -r requirements.txt
   title   = {PBT — Paper 4 Pipeline},
   version = {v1.0.0},
   year    = {2025},
-  doi     = {10.5281/zenodo.17420810},
-  url     = {https://doi.org/10.5281/zenodo.17420810}
+  doi     = {10.5281/zenodo.17467828},
+  url     = {https://doi.org/10.5281/zenodo.17467828}
 } 
 ```
 
