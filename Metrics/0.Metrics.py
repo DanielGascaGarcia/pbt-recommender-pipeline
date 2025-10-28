@@ -1,6 +1,6 @@
 # ==========================================================
 #  Basal Tuning Evaluation Script — with Dynamic Day Label
-#  Computes STD, ΔMAGE, and Composite Stability Index
+#  Computes STD, ΔTAMAE, and Composite Stability Index
 #  Displays dual-axis plots (mmol/L and mg/dL)
 # ==========================================================
 
@@ -63,15 +63,15 @@ for subj in subjects:
     reduction_std = ((std1 - std2) / std1) * 100 if std1 != 0 else np.nan
 
     # --- 2. Mean absolute deviation from 6 mmol/L (MAGE-like) ---
-    mage1 = np.mean(np.abs(bg1 - 6))
-    mage2 = np.mean(np.abs(bg2 - 6))
-    delta_mage = mage1 - mage2
+    tamae1 = np.mean(np.abs(bg1 - 6))
+    tamae2 = np.mean(np.abs(bg2 - 6))
+    delta_tamae = tamae1 - tamae2
 
     # --- 3. Composite stability index (GEOMETRIC MEAN of ratios) ---
-    # I = sqrt( (STD_before/STD_after) * (MAGE_before/MAGE_after) )
+    # I = sqrt( (STD_before/STD_after) * (TAMAE_before/TAMAE_after) )
     std_ratio  = (std1 + eps) / (std2 + eps)
-    mage_ratio = (mage1 + eps) / (mage2 + eps)
-    composite_index = np.sqrt(std_ratio * mage_ratio)
+    tamae_ratio = (tamae1 + eps) / (tamae2 + eps)
+    composite_index = np.sqrt(std_ratio * tamae_ratio)
 
     # --- Store all results (both mmol/L and mg/dL) ---
     results.append({
@@ -81,8 +81,8 @@ for subj in subjects:
         'STD_1_mgdl': mmol_to_mgdl(std1),
         'STD_2_mgdl': mmol_to_mgdl(std2),
         'STD_Reduction_%': reduction_std,
-        'ΔMAGE_mmolL': delta_mage,
-        'ΔMAGE_mgdl': mmol_to_mgdl(delta_mage),
+        'ΔtaMAE_mmolL': delta_tamae,
+        'ΔtaMAE_mgdl': mmol_to_mgdl(delta_tamae),
         'Composite_Index': composite_index
     })
 
@@ -122,22 +122,22 @@ plt.tight_layout()
 plt.show()
 
 # ==========================================================
-#  FIGURE 2 — ΔMAGE Improvement (Deviation from 6 mmol/L)
+#  FIGURE 2 — ΔtaMAE Improvement (Deviation from 6 mmol/L)
 # ==========================================================
 plt.figure(figsize=(10,6))
 
-plt.bar(df_results['Subject'], df_results['ΔMAGE_mmolL'], color='cornflowerblue')
+plt.bar(df_results['Subject'], df_results['ΔtaMAE_mmolL'], color='cornflowerblue')
 plt.axhline(0, color='gray', linestyle='--', linewidth=1)
 
 plt.xticks(rotation=45, ha='right')
-plt.ylabel("ΔMAGE (mmol/L)")
+plt.ylabel("ΔtaMAE (mmol/L)")
 plt.title(f"Improvement in Mean Deviation from Target (6 mmol/L) — {day_label}")
 plt.grid(axis='y', alpha=0.3)
 
 # Add secondary y-axis (mg/dL)
 ax2 = plt.gca().twinx()
 ax2.set_ylim(plt.ylim()[0] * 18.0182, plt.ylim()[1] * 18.0182)
-ax2.set_ylabel("ΔMAGE (mg/dL)")
+ax2.set_ylabel("ΔtaMAE (mg/dL)")
 
 plt.tight_layout()
 plt.show()

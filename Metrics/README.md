@@ -1,6 +1,6 @@
 # Metrics — Figures & KPIs 
 
-This module generates hourly **boxplots**, ISO ±15% figures, and final KPIs (**I**, **ΔMAGE**, **STD**, **TIR**, **bias**, **Δinsulin**).
+This module generates hourly **boxplots**, ISO ±15% figures, and final KPIs (**I**, **ΔtaMAE**, **STD**, **TIR**, **bias**, **Δinsulin**).
 
 ---
 

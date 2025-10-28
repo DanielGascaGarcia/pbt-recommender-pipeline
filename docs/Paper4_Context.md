@@ -16,7 +16,7 @@ This deposit accompanies the manuscript for **Experiment 3**, where the Personal
    - Run **Py-mgipsim** with meals enabled; evaluate the adjusted profile over **2 days** with fixed seeds.
 
 4. **Metrics & figures**
-   - Variability (STD), excursion change (ΔMAGE-like), **Composite Stability Index (I)**, TIR, bias, and Δ basal insulin.
+   - Variability (STD), excursion change (ΔtaMAE), **Composite Stability Index (I)**, TIR, bias, and Δ basal insulin.
    - Boxplots by hour; ISO-style bias ±15% view; per-subject tables and day-1/day-2 reproducibility.
 
 > See each subfolder for exact script order and commands that reproduce manuscript figures and tables.
