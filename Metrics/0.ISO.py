@@ -6,8 +6,6 @@ import globals
 
 # Full file path to the Excel file
 
-# 📂 Path and filename (adjust as needed)
-
 folder_path = globals.folder_path;
 file_name = "hourly_mean_and_std.xlsx"
 file_path = os.path.join(folder_path, file_name)
@@ -34,9 +32,6 @@ if 'hour' not in df.columns:
             raise ValueError("Could not derive 'hour' from 'Key'.")
     else:
         raise KeyError("Missing 'hour' column and no 'Key' column to derive it from.")
-
-# (Optional) If you have multiple rows per hour and want a single row per hour, uncomment:
-# df = df.groupby('hour', as_index=False).mean(numeric_only=True)
 
 # 3) Compute bias and flags (data already in mmol/L)
 denom = df['BG_Before_mean'].replace(0, pd.NA)
