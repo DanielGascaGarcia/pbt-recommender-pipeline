@@ -17,7 +17,7 @@ This pipeline accompanies the manuscript where PBT **generates basal rate recomm
 InVivo/      # Real‑data processing & signals for basal adjustment
 InSilico/    # Py‑mgipsim simulations (2 days with meals)
 Meals/       # “Before/After” meal & bolus scenarios
-Metrics/     # Figures & KPIs (Boxplots → ISO ±15% → I, ΔtaMAE, STD, TIR, bias, Δinsulin)
+Metrics/     # Figures & KPIs (Boxplots → ISO ±15% → I, ΔtaMAE, SD, TIR, bias, Δinsulin)
 globals.py   # IDs & paths (edit before running)
 LICENSE  •  CITATION.cff  •  requirements.txt
 ```
@@ -96,7 +96,7 @@ LICENSE  •  CITATION.cff  •  requirements.txt
 1. `0.BoxPlotsPerHour.py` → writes `hourly_mean_and_std.csv` (+ boxplot figures)  
 2. *(If your ISO script needs XLSX, convert CSV → `hourly_mean_and_std.xlsx`)*  
 3. `0.ISO.py` → ISO (±15% bias) figures reading the XLSX  
-4. `0.Metrics.py` → final KPIs: **I**, **ΔtaMAE**, **STD**, **TIR**, **bias**, **Δinsulin**
+4. `0.Metrics.py` → final KPIs: **I**, **ΔtaMAE**, **SD**, **TIR**, **bias**, **Δinsulin**
 
 **Typical inputs:** per‑minute “Before/After” Excel, `hourly_mean_and_std.xlsx`, and `DayN.xlsx` files.
 
@@ -136,7 +136,7 @@ pip install -r requirements.txt
 ## 📥 Inputs / 📤 Outputs (summary)
 
 - **Inputs:** real CGM/basal/bolus/meal logs (**InVivo**); Py‑mgipsim `Simulation_{id2}` folder (**InSilico**); per‑minute and per‑day Excel files (**Metrics**).  
-- **Outputs:** intermediate CSV/XLSX (merges, interpolations, hourly splits), ISO figures, and KPIs (**I**, **ΔtaMAE**, **STD**, **TIR**, **bias**, **Δinsulin**).
+- **Outputs:** intermediate CSV/XLSX (merges, interpolations, hourly splits), ISO figures, and KPIs (**I**, **ΔtaMAE**, **SD**, **TIR**, **bias**, **Δinsulin**).
 
 ---
 
