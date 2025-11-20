@@ -1,4 +1,4 @@
-Meal Scenarios
+# Meal Scenarios
 
 **Purpose:**  
 Generate meal and bolus event patterns for py-mgipsim simulations, allowing you to compare a baseline run (before) with a perturbed run (after) that includes carbohydrate disturbances.
