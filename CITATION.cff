@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this deposit, please cite as below."
+title: "Personalised Basal Tuner — Experiment 3 (Recommender Evaluation, In Silico)"
+authors:
+  - family-names: "Gasca Garcia"
+    given-names: "Daniel"
+    email: "daniel.gascagarcia@manchester.ac.uk"
+    affiliation: "University of Manchester"
+keywords:
+  - "Type 1 Diabetes"
+  - "Basal insulin"
+  - "CGM"
+  - "Py-mgipsim"
+  - "Recommender system"
+  - "In silico"
+license: "MIT"
+version: "1.0.0"
+date-released: "2025-10-21"

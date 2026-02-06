@@ -1,0 +1,23 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Data & outputs
+work/
+data/
+**/*.xlsx
+**/*.csv
+**/*.png
+
+# Python envs
+.venv/
+.env/
