@@ -67,7 +67,7 @@ LICENSE  •  CITATION.cff  •  requirements.txt
 5. `7.InterpolationBGHourlyTest.py`  
 6. `8.RelativeChangeTest.py`  
 7. `9.BoxplotTest.py`  
-8. `10.PivotGeneratormediansTest.py`  
+8. `10.PivotGeneratorMediansTest.py`  
 9. `12.MergeRChBasalNoActTest.py`  
 10. `13.InterpolationRChTest.py`  
 11. `14.SimulationBolusCHOPy-mgipsimTest.py` *(if required by your scenario)*  
@@ -145,20 +145,20 @@ pip install -r requirements.txt
 
 ## 📌 Citation
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17675141.svg)](https://doi.org/10.5281/zenodo.17675141)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17410200.svg)](https://doi.org/10.5281/zenodo.17410200)
 
 **Manuscript**: *Paper 4 — Basal Rate Recommendations evaluated in-silico with Py-mgipsim.*  
 **Software (this repository)**: Gasca García, D. **PBT — Paper 4 Pipeline (v1.0.0)**. Zenodo/GitHub. DOI:https://doi.org/10.5281/zenodo.17467828
 
 ### BibTeX
 ```bibtex
-@software{gasca_garcia_pbt_paper4_2025_v1_0_0,
+@software{gasca_garcia_pbt_paper4_2025_v1_0_2,
   author  = {Gasca García, Daniel},
   title   = {PBT — Paper 4 Pipeline},
   version = {v1.0.0},
   year    = {2025},
-  doi     = {10.5281/zenodo.17675141},
-  url     = {https://doi.org/10.5281/zenodo.17675141}
+  doi     = {10.5281/zenodo.17410200},
+  url     = {https://doi.org/10.5281/zenodo.17410200}
 } 
 ```
 
