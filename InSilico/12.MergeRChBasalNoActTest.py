@@ -1,3 +1,4 @@
+#Code: 12.MergeRChBasalNoActTest.py
 #Description: Merge of values.
 #Created 10th May 2023
 #Author: mbaxdg6
@@ -10,7 +11,11 @@ import numpy as np
 import matplotlib
 matplotlib.rcParams.update({'font.size': 15})
 import globals
-# --- Configurable global variable ---
+
+# -----------------------------------------------------------#
+# Configuration variables
+# -----------------------------------------------------------#
+
 id=globals.id;
 print(id)
 id2=globals.id2;

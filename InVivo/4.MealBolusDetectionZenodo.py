@@ -1,4 +1,4 @@
-#Code: 4.MealBolusDetection.py
+#Code: 4.MealBolusDetectionZenodo.py
 #Description: Read files of BG, meal and Bolus. Use top 4 meals by CHO per file.
 #Created 29th March 2023
 #Modified: 21 August 2025
@@ -12,8 +12,9 @@ import re
 import globals
 
 # -----------------------------------------------------------#
-# Configuration
+# Configuration variables
 # -----------------------------------------------------------#
+
 id = globals.id
 
 filetoread = globals.fileToSave;

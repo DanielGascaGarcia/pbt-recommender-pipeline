@@ -1,3 +1,4 @@
+#Code: 8.RelativeChangeTest.py
 #Description: Computation of relative changes.
 #Created 19th April 2023
 #Author: mbaxdg6
@@ -13,7 +14,9 @@ import numpy as np
 import csv
 pd.options.mode.chained_assignment = None  # default='warn'
 import globals
-# --- Configurable global variable ---
+# -----------------------------------------------------------#
+# Configuration variables
+# -----------------------------------------------------------#
 id=globals.id;
 id2=globals.id2;
 path2=globals.fileToSave

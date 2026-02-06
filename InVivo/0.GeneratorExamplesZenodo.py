@@ -1,21 +1,24 @@
+#Code: 0.GeneratorExamplesZenodo.py 
+#Description: Create examples from  dataset.
+#Created  29th March 2025
+#Author: mbaxdg6
+
+
 import csv
 import os
 from collections import defaultdict
 from datetime import datetime
 import globals
 # -----------------------------------------------------------#
-# Configuration
+# Configuration variables
 # -----------------------------------------------------------#
 
-
-# --- Configurable global variable ---
 id = globals.id;
 
-# --- Folder paths ---
 filetoread = globals.filetoread1;
 fileToSave = globals.fileToSave;
 
-# Ensure output directory exists
+
 os.makedirs(fileToSave, exist_ok=True)
 
 # -----------------------------------------------------------#

@@ -1,3 +1,4 @@
+#Code: 10.PivotGeneratorMediansZenodo.py
 #Description: Computation of relative changes.
 #Created 19th April 2023
 #Author: mbaxdg6
@@ -14,13 +15,12 @@ import csv
 import seaborn as sns
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
+
+# -----------------------------------------------------------#
+# Configuration variables
+# -----------------------------------------------------------#
 import globals
 id=globals.id;
-# -----------------------------------------------------------#
-# id=588;
-# id="adolescent#006";
-# id="child#010";
-# id="adult#001";
 path2= globals.fileToSave;
 fileToRead="Boxplot"+str(id);
 fileToSave="BGHourRelativeChange"+str(id);

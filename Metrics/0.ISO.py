@@ -1,3 +1,7 @@
+#Code: 0.ISO.py
+#Description: Box plots of BG per hour.
+#Created 11th Oct 2025
+#Author: mbaxdg6
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
@@ -45,7 +49,7 @@ before_std_mmol = df['BG_Before_std']
 after_std_mmol  = df['BG_After_std']
 
 # -----------------------------------------------------------#
-# Plot
+#                      Plot
 # -----------------------------------------------------------#
 fig, axes = plt.subplots(1, 3, figsize=(18, 5))
 
@@ -60,11 +64,11 @@ axes[0].set_xticks(range(0, 24, 1))
 axes[0].grid(True, axis='y')
 axes[0].legend()
 
-axes[1].plot(df['hour'], before_std_mmol, marker='o', label='Before Std', color='orange')
-axes[1].plot(df['hour'], after_std_mmol,  marker='o', label='After Std',  color='green')
+axes[1].plot(df['hour'], before_std_mmol, marker='o', label='Before SD', color='orange')
+axes[1].plot(df['hour'], after_std_mmol,  marker='o', label='After SD',  color='green')
 axes[1].set_title('Standard Deviation by Hour')
 axes[1].set_xlabel('Hour')
-axes[1].set_ylabel('Std Deviation (mmol/L)')
+axes[1].set_ylabel('SD Deviation (mmol/L)')
 axes[1].set_xticks(range(0, 24, 1))
 axes[1].legend()
 axes[1].grid(True)
@@ -74,7 +78,7 @@ ax2 = axes[1].twinx()
 y1min, y1max = axes[1].get_ylim()
 ax2.set_ylim(y1min * 18, y1max * 18)  # same scale converted
 ax2.set_ylabel('Std Deviation (mg/dL)')
-# Align right-axis ticks to the left by the 1:18 factor
+
 y1ticks = axes[1].get_yticks()
 ax2.set_yticks(y1ticks * 18)
 ax2.yaxis.set_major_formatter(FormatStrFormatter('%.0f'))

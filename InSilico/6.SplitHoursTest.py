@@ -1,3 +1,4 @@
+#Code: 6.SplitHoursTest.py
 #Description: Split values in different files.
 #Created 19th April 2023
 #Author: mbaxdg6
@@ -13,7 +14,9 @@ import numpy as np
 import csv
 import globals
 
-# --- Configurable global variable ---
+# -----------------------------------------------------------#
+# Configuration variables
+# -----------------------------------------------------------#
 id=globals.id;
 print(id)
 id2=globals.id2;

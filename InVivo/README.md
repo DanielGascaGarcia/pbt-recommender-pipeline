@@ -19,7 +19,7 @@ This module builds composite-day glucose profiles at 1-minute resolution **after
 11. `7.InterpolationBGHourlyZenodo.py` *(hourly interpolation helper)*  
 12. `8.RelativeChangeZenodo.py` *(hourly relative change)*  
 13. `9.BoxplotZenodo.py` *(hourly boxplots)*  
-14. `10.PivotGeneratormediansZenodo.py` *(robust hourly medians)*  
+14. `10.PivotGeneratorMediansZenodo.py` *(robust hourly medians)*  
 15. `12.MergeRChBasalNoActZenodo.py` *(merge relative change + basal)*  
 16. `13.InterpolationRChZenodo.py` *(interpolate relative change)*  
 17. `14.SimulationBolusCHOPy-mgipsimZenodo.py` *(meal/bolus sim helper)*  

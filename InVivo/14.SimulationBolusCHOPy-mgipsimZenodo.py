@@ -1,4 +1,4 @@
-#Code: 14.SimulationBolusCHO.py
+#Code: 14.SimulationBolusCHOPy-mgipsimZenodo.py
 #Description: Adviser of new insluin doses.
 #Created 1th May 2024
 #Author: mbaxdg6
@@ -16,6 +16,10 @@ import numpy as np
 import json
 import csv
 import globals
+# -----------------------------------------------------------#
+# Configuration variables
+# -----------------------------------------------------------#
+
 id=globals.id;
 id2=globals.id2;
 

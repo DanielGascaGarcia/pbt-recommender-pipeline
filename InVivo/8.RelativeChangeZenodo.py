@@ -1,3 +1,4 @@
+#Code: 8.RelativeChangeZenodo.py
 #Description: Computation of relative changes.
 #Created 19th April 2023
 #Author: mbaxdg6
@@ -13,8 +14,12 @@ import numpy as np
 import csv
 pd.options.mode.chained_assignment = None  # default='warn'
 import globals
-id=globals.id;
 
+
+# -----------------------------------------------------------#
+# Configuration variables
+# -----------------------------------------------------------#
+id=globals.id;
 path2= globals.fileToSave;
 fileToRead="BGHourInterpolated"+str(id);
 fileToSave="BGHourRelativeChange"+str(id);

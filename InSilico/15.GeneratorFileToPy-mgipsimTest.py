@@ -1,4 +1,4 @@
-#Code: 14.Simulation3.py
+#Code: 15.15.GeneratorFileToPy-mgipsimTest.py
 #Description: Adviser of new insluin doses.
 #Created 1th May 2024
 #Author: mbaxdg6
@@ -16,16 +16,15 @@ import numpy as np
 import globals
 import json
 # -----------------------------------------------------------#
-#File to read
+# Configuration variables
 # -----------------------------------------------------------#
-# --- Configurable global variable ---
 id=globals.id;
 print(id)
 id2=globals.id2;
 print(id2)
 
 pathRead=globals.fileToSave
-pathWrite='C:/OhioDataset/ExploratoryAnalysisData/OhioT1DM/2018/parsedTexts/ZenodoData/Simulation_'+str(id2);
+pathWrite=globals.fileToSave; #Add the id if necessary
 fileToRead="SampledAdvised"+str(id2)+"_"+"final"+".csv";   
 num_days = 1  # Number of simulation days
 

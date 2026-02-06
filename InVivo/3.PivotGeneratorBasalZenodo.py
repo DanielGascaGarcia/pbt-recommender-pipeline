@@ -1,4 +1,4 @@
-#Code: 3.PivotGeneratorBasal.py
+#Code: 3.PivotGeneratorBasalZenodo.py
 #Description: Creating pivot table for merge.
 #Created 22ND March 2023
 #Author: mbaxdg6
@@ -8,11 +8,9 @@ import pandas as pd
 
 import globals
 # -----------------------------------------------------------#
-# Configuration
+# Configuration variables
 # -----------------------------------------------------------#
 
-
-# --- Configurable global variable ---
 id = globals.id;
 
 dt = datetime.datetime(2010, 12, 1);

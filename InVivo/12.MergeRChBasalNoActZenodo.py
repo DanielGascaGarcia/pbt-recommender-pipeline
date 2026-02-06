@@ -1,3 +1,4 @@
+#Code: 12.MergeRChBasalNoActZenodo.py
 #Description: Merge of values.
 #Created 10th May 2023
 #Author: mbaxdg6
@@ -10,12 +11,11 @@ import numpy as np
 import matplotlib
 matplotlib.rcParams.update({'font.size': 15})
 import globals
+# -----------------------------------------------------------#
+# Configuration variables
+# -----------------------------------------------------------#
+
 id=globals.id;
-# 540,544,552,567,584,596,559,563,570,575,588,591
-# id=588;
-# id="adolescent#006";
-# id="child#010";
-# id="adult#001";
 path2= globals.fileToSave;
 fileToRead1="BGHourRelativeChange"+str(id);
 fileToRead2="BasalSimulated"+str(id);
@@ -44,7 +44,7 @@ output2.to_csv(str(path2)+str(fileToSave)+".csv",index=False);
 # -----------------------------------------------------------#
 #             Conversion to arrays (cleaner version)
 # -----------------------------------------------------------#
-# Convert Key to decimal hours (safer than splitting by :)
+
 key_time = pd.to_timedelta(output2["Key"] + ":00") if output2["Key"].str.count(":").eq(1).all() else pd.to_timedelta(output2["Key"])
 key_hours = key_time.dt.total_seconds() / 3600.0
 
@@ -56,7 +56,6 @@ Reliability = output2["Flag"].to_numpy()
 # -----------------------------------------------------------#
 #                 Uniform sampling by time
 # -----------------------------------------------------------#
-# One point every 'Sampling_time' hours (e.g. 0.1 h = 6 min)
 Sampling_time = float(Sampling_time)
 step = Sampling_time  # hours
 mask = np.isclose((key_hours / step) - np.round(key_hours / step), 0, atol=1e-6)
@@ -99,17 +98,19 @@ ax1.legend(loc="upper left")
 # -----------------------------------------------------------#
 #             Relative Blood Glucose panel
 # -----------------------------------------------------------#
-# Choose base unit for left axis
-BASE_UNIT = "mmol/L"  # change to "mg/dL" if your input is in mg/dL
 
-# Conversion functions
+BASE_UNIT = "mmol/L"  
+
+# -----------------------------------------------------------#
+#                          Plot
+# -----------------------------------------------------------#
 def mmol_to_mg(y):  # mmol/L -> mg/dL
     return y * 18.0
 
 def mg_to_mmol(y):  # mg/dL -> mmol/L
     return y / 18.0
 
-# Plot series in chosen base unit
+
 if BASE_UNIT.lower() == "mmol/l":
     y_primary = T_MedRelChange
     left_label = "BG Relative Change (mmol/L)"

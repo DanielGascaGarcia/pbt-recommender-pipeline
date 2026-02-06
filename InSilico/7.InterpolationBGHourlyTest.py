@@ -1,3 +1,4 @@
+#Code: 7.InterpolationBGHourlyTest.py
 #Description: interpolate values.
 #Created 19th April 2023
 #Author: mbaxdg6
@@ -15,7 +16,9 @@ import globals
 
 
 
-# --- Configurable global variable ---
+# -----------------------------------------------------------#
+# Configuration variables
+# -----------------------------------------------------------#
 id=globals.id;
 print(id)
 id2=globals.id2;

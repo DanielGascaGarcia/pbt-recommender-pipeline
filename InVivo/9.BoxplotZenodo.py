@@ -1,3 +1,4 @@
+#Code: 9.BoxplotZenodo.py
 #Description: Generating pivot with relative changes.
 #Created 10th May 2023
 #Author: mbaxdg6
@@ -15,8 +16,11 @@ import seaborn as sns
 import matplotlib
 matplotlib.rcParams.update({'font.size': 18})
 import globals
-id=globals.id;
 
+# -----------------------------------------------------------#
+# Configuration variables
+# -----------------------------------------------------------#
+id=globals.id;
 path2= globals.fileToSave;
 fileToRead="BGHourRelativeChange"+str(id);
 fileToSave="Boxplot"+str(id);

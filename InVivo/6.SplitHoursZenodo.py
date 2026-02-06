@@ -1,3 +1,4 @@
+#Code: 6.SplitHoursZenodo.py
 #Description: Split values in different files.
 #Created 19th April 2023
 #Author: mbaxdg6
@@ -12,11 +13,11 @@ from matplotlib import pyplot as plt
 import numpy as np
 import csv
 import globals
+
+# -----------------------------------------------------------#
+# Configuration variables
+# -----------------------------------------------------------#
 id=globals.id;
-# id=588;
-# id="adolescent#006";
-# id="child#010";
-# id="adult#001";
 path2= globals.fileToSave;
 fileToRead="BGwNMLeftJoined"+str(id)+".csv";
 fileToSave="BGHour"+str(id);

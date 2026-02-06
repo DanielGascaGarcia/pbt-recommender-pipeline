@@ -1,3 +1,4 @@
+#Code: 5.MergeBGCleanZenodo.py
 #Description: Merge of values.
 #Created 11th April 2023
 #Author: mbaxdg6
@@ -17,12 +18,11 @@ import globals
 
 filesBG=[];
 # -----------------------------------------------------------#
-# Configuration
+# Configuration variables
 # -----------------------------------------------------------#
-# --- Configurable global variable ---
 id=globals.id;
 
-# --- Folder paths ---
+
 filetoread = globals.fileToSave
 PathToSave= globals.fileToSave
 fileToSave="BGwNMLeftJoined"+str(id)+".csv";
@@ -31,12 +31,11 @@ fileToSave="BGwNMLeftJoined"+str(id)+".csv";
 #                  Files of BG
 # -----------------------------------------------------------#
 
-# Find and collect all matching BG files
 for file in os.listdir(filetoread):
     if file.startswith(f'_UoMGlucose{id}_') and file.endswith('.csv'):
         filesBG.append(file)
 
-# Sort files by the date part in filename (YYYYMMDD)
+
 filesBG.sort(key=lambda x: int(re.search(r'_(\d{8})', x).group(1)))
 
 

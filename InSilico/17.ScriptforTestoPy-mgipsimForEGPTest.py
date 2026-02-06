@@ -1,4 +1,4 @@
-#Code: 17.ScriptforTestSimglucose.py
+#Code: 17.ScriptforTestoPy-mgipsimForEGPTest.py
 #Description: Creating pivot table for merge.
 #Created 5th July 2023
 #Author: mbaxdg6
@@ -22,7 +22,7 @@ scripts = [
     "13.InterpolationRChTest.py",
     "14.SimulationBolusCHOPy-mgipsimTest.py",
     "15.GeneratorFileToPy-mgipsimTest.py",
-    # "0.GeneratorBolusExamplesPy-mgipsimForEGPMealTest.py",
+
 ]
 
 for script in scripts:

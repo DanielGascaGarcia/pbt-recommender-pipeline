@@ -1,4 +1,5 @@
-#Description: Merge of values.
+#Code: 13.InterpolationRChTest.py
+#Description: Interpolation.
 #Created 10th May 2023
 #Author: mbaxdg6
 
@@ -15,11 +16,11 @@ from scipy.interpolate import make_interp_spline
 from scipy.interpolate import UnivariateSpline
 from scipy.interpolate import interp1d
 matplotlib.rcParams.update({'font.size': 15})
-# -----------------------------------------------------------#
-# Parameters
-# -----------------------------------------------------------#
 import globals
-# --- Configurable global variable ---
+# -----------------------------------------------------------#
+# Configuration variables
+# -----------------------------------------------------------#
+
 id=globals.id;
 print(id)
 id2=globals.id2;
@@ -94,18 +95,18 @@ if len(SampleL)>0:
        SampleL = SampleL[~condition]
        SampleL = SampleL.drop_duplicates();
 
-       # # -----------------------------------------------------------#
-       # #                     Merge interpolation
-       # # -----------------------------------------------------------#
+       # -----------------------------------------------------------#
+       #                     Merge interpolation
+       # -----------------------------------------------------------#
        Merge=pd.DataFrame(); 
        Sample['Key']=Sample['Key'].str.strip();
        SampleL['Key']=SampleL['Key'].str.strip();
        Sample_= pd.merge(Sample,SampleL,on='Key',how='left');
 
 
-       # # # -----------------------------------------------------------#
-       # # #                     Replace in original
-       # # # -----------------------------------------------------------#
+       # -----------------------------------------------------------#
+       #                     Replace in original
+       # -----------------------------------------------------------#
 
        # Define the condition for replacement
        condition_ = Sample_['medFlag_x']<3 
@@ -136,16 +137,9 @@ RChToBeInt=Sample_['FRcH'].to_numpy();
 # -----------------------------------------------------------#
 
 
-# Find indices of missing values
 missing_indices = np.isnan(RChToBeInt)
-
-# Find indices of non-missing values
 non_missing_indices = ~missing_indices
-
-# Create an array of indices
 indices = np.arange(len(RChToBeInt))
-
-# Interpolate missing values
 RChToBeInt[missing_indices] = np.interp(indices[missing_indices], indices[non_missing_indices], RChToBeInt[non_missing_indices])
 
 # -----------------------------------------------------------#

@@ -15,7 +15,7 @@ computes **relative change**, and produces plots/medians used by Metrics.
 5. `7.InterpolationBGHourlyTest.py` — per-hour interpolation helper.
 6. `8.RelativeChangeTest.py` — compute hourly **relative change** for evaluation.
 7. `9.BoxplotTest.py` — hourly boxplots from simulation.
-8. `10.PivotGeneratormediansTest.py` — robust hourly medians.
+8. `10.PivotGeneratorMediansTest.py` — robust hourly medians.
 9. `12.MergeRChBasalNoActTest.py` — merge relative change with basal (no activity).
 10. `13.InterpolationRChTest.py` — interpolate relative-change series for summaries.
 11. `14.SimulationBolusCHOPy-mgipsimTest.py` — helper to simulate CHO/bolus scenarios if required.

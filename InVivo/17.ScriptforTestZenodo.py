@@ -1,4 +1,4 @@
-#Code: 17.ScriptforTestSimglucose.py
+#Code: 17.ScriptforTestZenodo.py
 #Description: Creating pivot table for merge.
 #Created 5th July 2023
 #Author: mbaxdg6
@@ -20,7 +20,7 @@ scripts = [
     "7.InterpolationBGHourlyZenodo.py",
     "8.RelativeChangeZenodo.py",
     "9.BoxplotZenodo.py",
-    "10.PivotGeneratormediansZenodo.py",
+    "10.PivotGeneratorMediansZenodo.py",
     "12.MergeRChBasalNoActZenodo.py",
     "13.InterpolationRChZenodo.py",
     "14.SimulationBolusCHOPy-mgipsimZenodo.py",

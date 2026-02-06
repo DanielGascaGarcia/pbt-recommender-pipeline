@@ -1,4 +1,4 @@
-#Code: S.SimulationBasal.py
+#Code: 6.SimulationBasalAutomatedZenodo.py
 #Description: Simulation of basal values.
 #Created 22nd March 2022
 #Author: mbaxdg6
@@ -20,7 +20,7 @@ import globals
 id=globals.id;
 
 # -----------------------------------------------------------#
-# Parameters
+# Configuration variables
 # -----------------------------------------------------------#
 
 path2=globals.fileToSave;

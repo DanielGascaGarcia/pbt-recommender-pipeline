@@ -1,6 +1,6 @@
-#Code: 0.GeneratorExamplespy-mgipsim.py
+#Code: 0.GeneratorExamplesPy-mgipsimForEGPtest.py 
 #Description: Create examples from  py-mgipsim simulator.
-#Created 24th October 2022
+#Created  29th March 2025
 #Author: mbaxdg6
 
 
@@ -21,11 +21,11 @@ import math
 # Configuration variables
 # -----------------------------------------------------------#
 
-# --- Configurable global variable ---
+
 id=globals.id;
 id2=globals.id2;
 
-# --- Folder path setup ---
+
 filetoread = globals.fileToSave;
 # Location of patient files
 path = globals.path
@@ -100,7 +100,7 @@ file_name_2 = f"{fileToSave}/BasalLeftJoined{str(id2)}.csv"
 df.to_csv(file_name_1, index=False)
 df.to_csv(file_name_2, index=False)
 
-# Inform user
+
 print(f"Data saved to:\n  → {file_name_1}\n  → {file_name_2}")
 
 # -----------------------------------------------------------#
@@ -109,11 +109,11 @@ print(f"Data saved to:\n  → {file_name_1}\n  → {file_name_2}")
 
 print(new_folder_path);
 
-# # Load the Excel file
+#  Load the Excel file
 file_path = new_folder_path+BGFile
 sheet_name = "Patient_0"  
 
-# # Read the sheet into a DataFrame
+#  Read the sheet into a DataFrame
 dataBG = pd.read_excel(file_path, sheet_name=sheet_name)
 
 dataBG.columns = dataBG.columns.str.strip().str.replace(r'[\r\n\t\u00A0]', '', regex=True)
@@ -125,12 +125,12 @@ BG_values = dataBG['BGValue']
 # Save values
 # -----------------------------------------------------------#
 
-# Assume 1 value per minute, so 1440 per day
+
 records_per_day = 1440
 total_records = len(dataBG)
 num_days = math.ceil(total_records / records_per_day)
 
-# Create time key for one day (repeated)
+
 time_range = pd.date_range(start="00:00:00", end="23:59:59", freq="1min").time
 key = [t.strftime("%H:%M:%S") for t in time_range] * num_days
 
@@ -162,7 +162,7 @@ subset_df.to_csv(fileToSave + '/BGDay_ini_' + str(id2) + '.csv', index=False)
 
 # Load the CSV file
 file_path = fileToSave  + '/BGDay_ini_' + str(id2) + '.csv' 
-df = pd.read_csv(file_path)  # Adjust delimiter if needed
+df = pd.read_csv(file_path) 
 
 # Define the chunk size
 chunk_size = 1440  

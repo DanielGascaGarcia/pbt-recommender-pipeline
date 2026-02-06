@@ -1,3 +1,4 @@
+#Code: 7.InterpolationBGHourlyZenodo.py
 #Description: interpolate values.
 #Created 19th April 2023
 #Author: mbaxdg6
@@ -14,10 +15,9 @@ import csv
 import globals
 id=globals.id;
 
-# id=588;
-# id="adolescent#006";
-# id="child#010";
-# id="adult#001";
+# -----------------------------------------------------------#
+# Configuration variables
+# -----------------------------------------------------------#
 path2= globals.fileToSave;
 fileToRead="BGHour"+str(id);
 fileToSave="BGHourInterpolated"+str(id);

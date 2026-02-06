@@ -1,4 +1,5 @@
-#Description: Generating pivot with relative changes.
+#Code: 8.BoxplotTest.py
+#Description: Box plot generation.
 #Created 10th May 2023
 #Author: mbaxdg6
 
@@ -15,7 +16,9 @@ import seaborn as sns
 import matplotlib
 matplotlib.rcParams.update({'font.size': 18})
 import globals
-# --- Configurable global variable ---
+# -----------------------------------------------------------#
+# Configuration variables
+# -----------------------------------------------------------#
 id=globals.id;
 print(id)
 id2=globals.id2;

@@ -1,6 +1,6 @@
-#Code: 0.GeneratorExamplespy-mgipsim.py
+#Code: 0.GeneratorBolusExamplesPy-mgipsimForEGPMealTest.py
 #Description: Create examples from  py-mgipsim simulator.
-#Created 24th October 2022
+#Created 24th October 2025
 #Author: mbaxdg6
 
 from simglucose.simulation.env import T1DSimEnv
@@ -28,27 +28,30 @@ import numpy as np
 # Configuration variables
 # -----------------------------------------------------------#
 
-# --- Configurable global variable ---
 id=globals.id;
 id2=globals.id2;
 
-# --- Folder path setup ---
+
 filetoread = globals.fileToSave;
-# Location of patient files
+
 path = globals.path;
 fileJSON=str(id)+".json";
-# Location to save Meal and bolus files
+
 fileToSave = globals.fileToSave;
 # -----------------------------------------------------------#
-# Simulation of humps of BG
+
 days=1
 multiplier=1440
 
+# -----------------------------------------------------------#
+# These meals can be changed depending of the scenario 
+# -----------------------------------------------------------#
+
 meal_magnitudes=[32,30,45,85]
-# List of time strings
 time_strings = ["08:16:00","10:46:00","13:53:00","18:54:00"]
 
-# Convert to minutes
+# -----------------------------------------------------------#
+
 minutes = []
 for time_str in time_strings:
     t = datetime.strptime(time_str, "%H:%M:%S")
@@ -57,9 +60,9 @@ for time_str in time_strings:
 
 meal_times=minutes;
 
-# Functions
 # -----------------------------------------------------------#
 #ICR
+# -----------------------------------------------------------#
 def extract_carbs_ratio_from_file(json_path):
     with open(json_path, 'r') as file:
         data = json.load(file)
@@ -68,8 +71,6 @@ def extract_carbs_ratio_from_file(json_path):
 # -----------------------------------------------------------#
 # Change name to the folder
 # -----------------------------------------------------------#
-
-# --- Find and rename the newest Simulation folder ---
 
 folders = [f for f in glob.glob(os.path.join(filetoread, "Simulation*")) if os.path.isdir(f)]
 folders.sort(key=os.path.getctime)
@@ -96,14 +97,14 @@ ICR = float(extract_carbs_ratio_from_file(path+fileJSON));
 # Change the length of the simulation
 # -----------------------------------------------------------#
 file_path = os.path.join(new_folder_path, "simulation_settings.json")
-# Load JSON from file
+
 with open(file_path, 'r') as f:
     data = json.load(f)
 
-# Change end_time value
-data["settings"]["end_time"] = days*multiplier  # or any value you want
 
-# Save the updated JSON back to the file
+data["settings"]["end_time"] = days*multiplier 
+
+
 with open(file_path, 'w') as f:
     json.dump(data, f, indent=4)
 # -----------------------------------------------------------#
@@ -111,24 +112,26 @@ with open(file_path, 'w') as f:
 # -----------------------------------------------------------#
 
 file_path = os.path.join(new_folder_path, "simulation_settings.json")
-# Load JSON from file
+
 with open(file_path, 'r') as f:
     data = json.load(f)
 
-
-# ------Meals-----
+# -----------------------------------------------------------#
+#                            Meals
+# -----------------------------------------------------------#
 data["inputs"]["meal_carb"]["magnitude"] = [meal_magnitudes]
 data["inputs"]["meal_carb"]["start_time"] = [meal_times]
 duration_meals=data["inputs"]["meal_carb"]["duration"]
 data["inputs"]["meal_carb"]["duration"]=[[duration_meals[0][0]] * len(meal_times)]
-#-------Boluses----
+# -----------------------------------------------------------#
+#                            Boluses
+# -----------------------------------------------------------#
 bolus_doses=np.array(meal_magnitudes) / ICR
 data["inputs"]["bolus_insulin"]["magnitude"] = [bolus_doses.tolist()]
 data["inputs"]["bolus_insulin"]["start_time"] = [meal_times]
 data["inputs"]["bolus_insulin"]["duration"] = [[1.0] * len(meal_times)]
 
 
-# Save the updated JSON back to the file
 with open(file_path, 'w') as f:
     json.dump(data, f, indent=4)
 

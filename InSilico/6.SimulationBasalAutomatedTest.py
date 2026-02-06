@@ -1,4 +1,4 @@
-#Code: S.SimulationBasal.py
+#Code: 6.SimulationBasalAutomatedTest.py
 #Description: Simulation of basal values.
 #Created 22nd March 2022
 #Author: mbaxdg6
@@ -18,10 +18,8 @@ matplotlib.rcParams.update({'font.size': 12})
 
 import globals
 # -----------------------------------------------------------#
-# Parameters
+# Configuration variables
 # -----------------------------------------------------------#
-
-# --- Configurable global variable ---
 id=globals.id;
 id2=globals.id2;
 

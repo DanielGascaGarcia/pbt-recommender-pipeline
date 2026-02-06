@@ -1,3 +1,4 @@
+#Code: 13.InterpolationRChZenodo.py
 #Description: Merge of values.
 #Created 10th May 2023
 #Author: mbaxdg6
@@ -16,15 +17,11 @@ from scipy.interpolate import UnivariateSpline
 from scipy.interpolate import interp1d
 matplotlib.rcParams.update({'font.size': 15})
 # -----------------------------------------------------------#
-# Parameters
+# Configuration variables
 # -----------------------------------------------------------#
 import globals
 id=globals.id;
-# 540,544,552,567,584,596,559,563,570,575,588,591
-# id=588;
-# id="adolescent#006";
-# id="child#010";
-# id="adult#001";
+
 path2= globals.fileToSave;
 fileToRead="ComparisonJoinedNoActivity"+str(id);
 # fileToRead="ComparisonJoinedPeakNoActivity"+str(id);
@@ -103,9 +100,9 @@ if len(SampleL)>0:
        Sample_= pd.merge(Sample,SampleL,on='Key',how='left');
 
 
-       # # # -----------------------------------------------------------#
-       # # #                     Replace in original
-       # # # -----------------------------------------------------------#
+       # -----------------------------------------------------------#
+       #                     Replace in original
+       # -----------------------------------------------------------#
 
        # Define the condition for replacement
        condition_ = Sample_['medFlag_x']<3 
@@ -136,16 +133,10 @@ RChToBeInt=Sample_['FRcH'].to_numpy();
 # -----------------------------------------------------------#
 
 
-# Find indices of missing values
+
 missing_indices = np.isnan(RChToBeInt)
-
-# Find indices of non-missing values
 non_missing_indices = ~missing_indices
-
-# Create an array of indices
 indices = np.arange(len(RChToBeInt))
-
-# Interpolate missing values
 RChToBeInt[missing_indices] = np.interp(indices[missing_indices], indices[non_missing_indices], RChToBeInt[non_missing_indices])
 
 # -----------------------------------------------------------#

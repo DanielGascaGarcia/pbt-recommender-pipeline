@@ -1,4 +1,5 @@
-#Description: Computation of relative changes.
+#Code: 10.PivotGenerationMediansTest.py
+#Description: Computation of medians.
 #Created 19th April 2023
 #Author: mbaxdg6
 
@@ -15,7 +16,9 @@ import seaborn as sns
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 import globals
-# --- Configurable global variable ---
+# -----------------------------------------------------------#
+# Configuration variables
+# -----------------------------------------------------------#
 id=globals.id;
 print(id)
 id2=globals.id2;

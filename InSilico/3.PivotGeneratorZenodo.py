@@ -1,6 +1,6 @@
-#Code: 3.PivotGeneratorBG.py
+#Code: 3.PivotGeneratorZenodo.py
 #Description: Creating pivot table for merge.
-#Created 29th March 2023
+#Created 29th March 2025
 #Author: mbaxdg6
 
 import datetime 
@@ -8,11 +8,10 @@ import pandas as pd
 
 import globals
 # -----------------------------------------------------------#
-# Configuration
+# Configuration variables
 # -----------------------------------------------------------#
 
 
-# --- Configurable global variable ---
 id = globals.id;
 
 dt = datetime.datetime(2010, 12, 1);

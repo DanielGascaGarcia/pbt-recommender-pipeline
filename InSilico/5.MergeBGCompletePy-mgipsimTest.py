@@ -1,3 +1,4 @@
+#Code: 5.MergeBGCompletePy-mgipsimTest.py
 #Description: Merge of values.
 #Created 11th April 2023
 #Author: mbaxdg6
@@ -12,13 +13,13 @@ from matplotlib import pyplot as plt
 import numpy as np
 import re
 import globals
-# Parameters
 
-# Parameters
 filesBG=[];
 
+# -----------------------------------------------------------#
+# Configuration variables
+# -----------------------------------------------------------#
 
-# --- Configurable global variable ---
 id2=globals.id2;
 id=globals.id;
 

@@ -8,12 +8,12 @@ import pandas as pd
 import os
 
 import globals
-# --- Configurable global variable ---
+# -----------------------------------------------------------#
+# Configuration variables
+# -----------------------------------------------------------#
 id2=globals.id2;
 id=globals.id;
-
-
-path2=f'C:/OhioDataset/ExploratoryAnalysisData/OhioT1DM/2018/parsedTexts/ZenodoData/{id}/';
+path2=globals.fileToSave;
 fileToRead="BasalLeftJoined"+str(id2)+".csv";
 fileToSave="BasalImputed"+str(id2)+".csv";
 

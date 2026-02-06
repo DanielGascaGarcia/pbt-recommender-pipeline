@@ -1,3 +1,5 @@
+
+#Code: 0.InterpolationBGHourlyDataZenodo.py 
 #Description: interpolate values.
 #Created 19th April 2023
 #Author: mbaxdg6
@@ -15,6 +17,9 @@ import globals
 from scipy.stats import zscore
 id=globals.id;
 
+# -----------------------------------------------------------#
+# Configuration variables
+# -----------------------------------------------------------#
 
 path2 = globals.fileToSave
 fileToRead = "BGwNMLeftJoined" + str(id)
