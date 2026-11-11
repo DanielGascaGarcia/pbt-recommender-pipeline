@@ -1,8 +1,32 @@
-#Code: 13.InterpolationRChTest.py
-#Description: Interpolation.
-#Created 10th May 2023
-#Author: mbaxdg6
+"""
+13.InterpolationRChTest.py
+Step 13 (InSilico): guide of the simulated profile, the smooth curve of its
+median within-hour change (BGRChInt), the input of the recommendation.
 
+Created: 10 May 2023
+Author:  mbaxdg6 (Daniel Gasca Garcia)
+
+What it does
+    Same procedure as InVivo/13.InterpolationRChZenodo.py: one node per hour
+    at minute :59 over 4 repeated days; non-green hours outside the
+    25th-75th percentile of those hours set aside and linearly interpolated;
+    light smoothing spline (factor 0.1); the second day is kept.
+
+Inputs
+    processed/<id>/ComparisonJoinedNoActivity<id2>.csv   (step 12)
+
+Output
+    processed/<id>/SampleJoined<id2>.csv   input columns + BGRChInt (mg/dL)
+
+Notes
+    - In silico every hour has reliability 3 (step 10, one simulated day),
+      so no hour is set aside: the trimming is in the code but has no effect
+      here, and the guide is the spline of all 24 hourly medians.
+    - Uses np.percentile (np.nanpercentile in InVivo); the simulated series
+      has no gaps, so both give the same result.
+    - The evaluation grid np.linspace(0, 5760, 5760) has a spacing slightly
+      above 1 minute (see InVivo); negligible.
+"""
 
 import pandas as pd
 import os
@@ -16,11 +40,11 @@ from scipy.interpolate import make_interp_spline
 from scipy.interpolate import UnivariateSpline
 from scipy.interpolate import interp1d
 matplotlib.rcParams.update({'font.size': 15})
+# -----------------------------------------------------------#
+# Parameters
+# -----------------------------------------------------------#
 import globals
-# -----------------------------------------------------------#
-# Configuration variables
-# -----------------------------------------------------------#
-
+# --- Configurable global variable ---
 id=globals.id;
 print(id)
 id2=globals.id2;
@@ -72,6 +96,7 @@ Sample['medFlag'].fillna('');
 #                    Keep the least reliable
 # -----------------------------------------------------------#
 
+# In silico all hours are green (one simulated day), so nothing is trimmed.
 SampleL = pd.DataFrame(Sample)
 Sample_=SampleL
 condition = SampleL['medFlag'] ==3;
@@ -79,7 +104,7 @@ SampleL = SampleL[~condition]
 if len(SampleL)>0:
 
        # -----------------------------------------------------------#
-       #                    Small outlier detection
+       #                    Interquartile trimming of the non-green hours
        # -----------------------------------------------------------#
 
        percentiles = SampleL['FRcH'].quantile([0.25, 0.5, 0.75])
@@ -95,18 +120,18 @@ if len(SampleL)>0:
        SampleL = SampleL[~condition]
        SampleL = SampleL.drop_duplicates();
 
-       # -----------------------------------------------------------#
-       #                     Merge interpolation
-       # -----------------------------------------------------------#
+       # # -----------------------------------------------------------#
+       # #                     Merge interpolation
+       # # -----------------------------------------------------------#
        Merge=pd.DataFrame(); 
        Sample['Key']=Sample['Key'].str.strip();
        SampleL['Key']=SampleL['Key'].str.strip();
        Sample_= pd.merge(Sample,SampleL,on='Key',how='left');
 
 
-       # -----------------------------------------------------------#
-       #                     Replace in original
-       # -----------------------------------------------------------#
+       # # # -----------------------------------------------------------#
+       # # #                     Replace in original
+       # # # -----------------------------------------------------------#
 
        # Define the condition for replacement
        condition_ = Sample_['medFlag_x']<3 
@@ -137,9 +162,16 @@ RChToBeInt=Sample_['FRcH'].to_numpy();
 # -----------------------------------------------------------#
 
 
+# Find indices of missing values
 missing_indices = np.isnan(RChToBeInt)
+
+# Find indices of non-missing values
 non_missing_indices = ~missing_indices
+
+# Create an array of indices
 indices = np.arange(len(RChToBeInt))
+
+# Interpolate missing values
 RChToBeInt[missing_indices] = np.interp(indices[missing_indices], indices[non_missing_indices], RChToBeInt[non_missing_indices])
 
 # -----------------------------------------------------------#

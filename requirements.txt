@@ -1,7 +1,9 @@
-pandas
-numpy
-matplotlib
-scipy
-seaborn
-openpyxl
-pyyaml
+# Pipeline environment (Python 3.9.12) — versions verified to reproduce the reported outputs.
+# Py-mgipsim runs in its own Python 3.12 environment (see README).
+numpy==2.0.2
+pandas==2.2.2
+scipy==1.13.1
+matplotlib==3.9.2
+seaborn==0.13.2
+pillow==9.0.1
+openpyxl==3.1.5    # reads state_results.xlsx written by Py-mgipsim (InSilico)

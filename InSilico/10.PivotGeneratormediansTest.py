@@ -1,7 +1,22 @@
-#Code: 10.PivotGenerationMediansTest.py
-#Description: Computation of medians.
-#Created 19th April 2023
-#Author: mbaxdg6
+"""
+10.PivotGeneratormediansTest.py
+Step 10 (InSilico): median within-hour change and reliability of each hour,
+expanded to the minute grid.
+
+Created: 19 April 2023
+Author:  mbaxdg6 (Daniel Gasca Garcia)
+
+What it does
+    Same as InVivo/10.PivotGeneratormediansZenodo.py.
+
+Inputs / Outputs
+    Boxplot<id2>0-24total.csv -> BGHourRelativeChange<id2>0To24medians(_wCN).csv
+
+Notes
+    - With a single simulated day, every hour has exactly one value, so all
+      24 counts are equal and every hour gets reliability 3 (high). As a
+      result, step 13 sets nothing aside in silico (see its Notes).
+"""
 
 import warnings
 import datetime 
@@ -16,9 +31,7 @@ import seaborn as sns
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 import globals
-# -----------------------------------------------------------#
-# Configuration variables
-# -----------------------------------------------------------#
+# --- Configurable global variable ---
 id=globals.id;
 print(id)
 id2=globals.id2;
@@ -81,4 +94,4 @@ for j in range(len(secArray)):
 # -----------------------------------------------------------#
 df = pd.read_csv(str(path2)+str(fileToSave)+str("0To24")+"medians"+".csv",  header=None);
 df.rename(columns={0: 'Key',1:'MedRelChange',2:'Flag'}, inplace=True);
-df.to_csv(str(path2)+str(fileToSave)+str("0To24")+"medians"+"_wCN"+".csv", index=False); # save to new csv 
+df.to_csv(str(path2)+str(fileToSave)+str("0To24")+"medians"+"_wCN"+".csv", index=False); # save to new csv

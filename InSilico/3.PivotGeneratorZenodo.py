@@ -1,17 +1,35 @@
-#Code: 3.PivotGeneratorZenodo.py
-#Description: Creating pivot table for merge.
-#Created 29th March 2025
-#Author: mbaxdg6
+"""
+3.PivotGeneratorZenodo.py   (header of the original file reads 3.PivotGeneratorBG.py)
+Step 3 (InSilico): write the minute grid of one day, used to join the
+simulated glucose in 5.MergeBGComplete.
+
+Created: 29 March 2023
+Author:  mbaxdg6 (Daniel Gasca Garcia)
+
+What it does
+    Writes the 1,440 times of a day (00:00:00 ... 23:59:00), first without a
+    header (PivotBG.csv) and then with the column name Key (PivotBG_wCN.csv).
+
+Inputs
+    globals.id, globals.fileToSave
+
+Outputs (in processed/<id>/)
+    PivotBG.csv, PivotBG_wCN.csv
+
+Notes
+    - Same script as InVivo/3.PivotGeneratorZenodo.py.
+"""
 
 import datetime 
 import pandas as pd
 
 import globals
 # -----------------------------------------------------------#
-# Configuration variables
+# Configuration
 # -----------------------------------------------------------#
 
 
+# --- Configurable global variable ---
 id = globals.id;
 
 dt = datetime.datetime(2010, 12, 1);
@@ -35,4 +53,4 @@ for j in secArray:
 # -----------------------------------------------------------#
 df = pd.read_csv(str(PathToSave)+"PivotBG"+".csv",  header=None);
 df.rename(columns={0: 'Key'}, inplace=True);
-df.to_csv(str(PathToSave)+"PivotBG"+"_wCN"+".csv", index=False); # save to new csv 
+df.to_csv(str(PathToSave)+"PivotBG"+"_wCN"+".csv", index=False); # save to new csv

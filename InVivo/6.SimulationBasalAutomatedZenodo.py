@@ -1,9 +1,42 @@
-#Code: 6.SimulationBasalAutomatedZenodo.py
-#Description: Simulation of basal values.
-#Created 22nd March 2022
-#Author: mbaxdg6
+"""
+6.SimulationBasalAutomatedZenodo.py   (header of the original file reads S.SimulationBasal.py)
+Step 6 (InVivo, basal branch): turn the representative basal profile into an
+insulin action curve over the day.
 
+Created: 22 March 2022
+Author:  mbaxdg6 (Daniel Gasca Garcia)
 
+What it does
+    1. Samples ModeBasalValue every 5 minutes and treats each sample as a
+       small dose (rate / 12 U).
+    2. Gives each dose a Rayleigh-shaped action profile for rapid-acting
+       insulin (scale 1 h, 7 h long) and adds all of them up.
+    3. Folds the action that falls after midnight back onto the start of the
+       day, so the day behaves as a repeating 24-h cycle.
+    4. Saves, every 5 minutes, the summed action (ActiveInsulin) and the
+       programmed rate (BasalInfused).
+
+Inputs
+    globals.id, globals.fileToSave
+    processed/<id>/BasalImputed<id>.csv   (5.FillGapsBasalZenodo.py)
+
+Output
+    processed/<id>/BasalSimulated<id>.csv   Key (every 5 min), ActiveInsulin, BasalInfused
+
+Notes
+    - Every dose uses insulin kind 1 (rapid-acting); the other kinds in
+      InsulinDict are defined but not used.
+    - The samples are taken where i % 5 == True, i.e. at minutes 1, 6, 11, ...
+      (one minute after the 5-min marks); the time of each dose is shifted
+      back by 1 min to compensate.
+    - This curve is used for the figure of 12.MergeRChBasalNoAct and to
+      describe the programmed profile; it does not enter the basal
+      recommendation.
+    - In the block that pads IF_F_Offset to 288 samples, the else branch
+      loops over a negative range and does nothing; it is never needed with
+      a 24-h profile.
+    - The plot is commented out.
+"""
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -20,7 +53,7 @@ import globals
 id=globals.id;
 
 # -----------------------------------------------------------#
-# Configuration variables
+# Parameters
 # -----------------------------------------------------------#
 
 path2=globals.fileToSave;
@@ -44,6 +77,7 @@ Basal_infused=[];
 # -----------------------------------------------------------#
 #Generation of input variables
 # -----------------------------------------------------------#
+# One dose every 5 min: rate (U/h) / 12.
 for i in range(len(t)):
     # print(i);
     (h, m, s) = t[i].split(':');
@@ -176,6 +210,7 @@ else:
                 del Basal_infused[-1];
 
 
+# Action after midnight (beyond 288 samples) is added back to the start of the day.
 IF_F_Offset=[];
 for i in range(len(T_F)-288):
     IF_F_Offset.append(IF_F[i+288]);
@@ -242,4 +277,3 @@ Basal_infused=pd.DataFrame(Basal_infused, columns=['BasalInfused']);
 df['ActiveInsulin']=IF_F;
 df['BasalInfused']=Basal_infused;
 df.to_csv(str(path2)+str(fileToSave),index=False);
-

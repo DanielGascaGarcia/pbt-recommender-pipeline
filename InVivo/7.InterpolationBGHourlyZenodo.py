@@ -1,7 +1,27 @@
-#Code: 7.InterpolationBGHourlyZenodo.py
-#Description: interpolate values.
-#Created 19th April 2023
-#Author: mbaxdg6
+"""
+7.InterpolationBGHourlyZenodo.py
+Step 7 (InVivo, meal-based branch): fill short gaps inside each hourly file.
+
+Created: 19 April 2023
+Author:  mbaxdg6 (Daniel Gasca Garcia)
+
+What it does
+    In each of the 24 hourly files, interpolates every day column linearly
+    over gaps of up to 5 minutes, in both directions. With CGM readings every
+    5 minutes this fills the minutes between readings; longer gaps (sensor
+    dropout, removed meal windows) stay empty.
+
+Inputs
+    globals.id, globals.fileToSave
+    processed/<id>/BGHour<id><i>To<i+1>.csv   (6.SplitHoursZenodo.py)
+
+Outputs
+    processed/<id>/BGHourInterpolated<id><i>To<i+1>.csv
+
+Notes
+    - Interpolation stays inside the hour: it does not cross hourly files.
+    - The commented lines (hourly mean, median, SD) are not used.
+"""
 
 import warnings
 import datetime 
@@ -15,9 +35,10 @@ import csv
 import globals
 id=globals.id;
 
-# -----------------------------------------------------------#
-# Configuration variables
-# -----------------------------------------------------------#
+# id=588;
+# id="adolescent#006";
+# id="child#010";
+# id="adult#001";
 path2= globals.fileToSave;
 fileToRead="BGHour"+str(id);
 fileToSave="BGHourInterpolated"+str(id);

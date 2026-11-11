@@ -1,7 +1,34 @@
-#Code: 15.15.GeneratorFileToPy-mgipsimTest.py
-#Description: Adviser of new insluin doses.
-#Created 1th May 2024
-#Author: mbaxdg6
+"""
+15.GeneratorFileToPy-mgipsimTest.py   (header of the original file reads 14.Simulation3.py)
+Step 15 (InSilico): write the recommended basal profile into the settings of
+the virtual patient, ready for the "After" scenarios.
+
+Created: 1 May 2024
+Author:  mbaxdg6 (Daniel Gasca Garcia)
+
+What it does
+    1. Keeps a copy of the starting settings as
+       simulation_settings_original.json (only the first time).
+    2. Converts AdjustedRecIns (U/h, every 5 min) into a step profile: one
+       entry per change of rate, with its start time in minutes.
+    3. Writes it into inputs > basal_insulin (magnitude, start_time) of
+       simulation_settings.json.
+
+Inputs
+    globals.id, globals.id2, globals.fileToSave, globals.sim_dir
+    processed/<id>/SampledAdvised<id2>_final.csv   (step 14)
+    InSilico/simulations/<id>/Simulation_<id2>/simulation_settings.json
+
+Outputs
+    InSilico/simulations/<id>/Simulation_<id2>/simulation_settings.json           recommended profile
+    InSilico/simulations/<id>/Simulation_<id2>/simulation_settings_original.json  starting profile
+
+Notes
+    - The copy is made only once, so running the step again never overwrites
+      the starting profile with a recommended one.
+    - num_days = 1: one simulated day per scenario.
+"""
+
 import datetime 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -16,15 +43,17 @@ import numpy as np
 import globals
 import json
 # -----------------------------------------------------------#
-# Configuration variables
+#File to read
 # -----------------------------------------------------------#
+# --- Configurable global variable ---
 id=globals.id;
 print(id)
 id2=globals.id2;
 print(id2)
 
 pathRead=globals.fileToSave
-pathWrite=globals.fileToSave; #Add the id if necessary
+# Same Simulation_<id2> folder that 0.GeneratorExamplesPy-mgipsimForEGPtest.py reads.
+pathWrite=globals.sim_dir(id2, id).rstrip('/');
 fileToRead="SampledAdvised"+str(id2)+"_"+"final"+".csv";   
 num_days = 1  # Number of simulation days
 
@@ -39,6 +68,14 @@ print(data)
 # Load JSON and extract existing data
 # -----------------------------------------------------------#
 json_file_name = os.path.join(pathWrite, 'simulation_settings.json')
+
+# Keep the settings with the original basal profile before writing the
+# recommended one into simulation_settings.json. The copy is made only once,
+# so re-running this script never overwrites it with a recommended profile.
+original_copy = os.path.join(pathWrite, 'simulation_settings_original.json')
+if not os.path.isfile(original_copy):
+    import shutil
+    shutil.copy2(json_file_name, original_copy)
 
 with open(json_file_name, 'r') as json_file:
     existing_data = json.load(json_file)

@@ -1,8 +1,44 @@
-#Code: 13.InterpolationRChZenodo.py
-#Description: Merge of values.
-#Created 10th May 2023
-#Author: mbaxdg6
+"""
+13.InterpolationRChZenodo.py
+Step 13 (InVivo): build the guide, a smooth curve of the median within-hour
+change over the day, after setting aside atypical hours of low reliability.
 
+Created: 10 May 2023
+Author:  mbaxdg6 (Daniel Gasca Garcia)
+
+What it does
+    1. Takes one value per hour (MedRelChange and Flag at minute :59) and
+       repeats the day 4 times (96 samples), so the spline has no edge
+       effects at midnight.
+    2. Hours of high reliability (Flag 3) are always kept. Among the other
+       hours, values below the 25th or above the 75th percentile of those
+       hours (over the 96 samples) are set aside.
+    3. Fills the set-aside hours by linear interpolation between the kept
+       ones, then fits a light smoothing spline (factor 0.1).
+    4. Keeps the second of the 4 repeated days as BGRChInt.
+
+Inputs
+    globals.id, globals.fileToSave
+    processed/<id>/ComparisonJoinedNoActivity<id>.csv   (12.MergeRChBasalNoActZenodo.py)
+
+Output
+    processed/<id>/SampleJoined<id>.csv
+        the input columns + BGRChInt (guide, mmol/L, minute by minute)
+
+Notes
+    - The trimming keeps the central half of the non-green values; it is a
+      range-based trim, not an outlier test. It is symmetric, so it does not
+      push the guide up or down. Its effect is measured by
+      S.TrimmingEffect.py.
+    - Each hourly value sits at the end of its hour (minute :59).
+    - The evaluation grid np.linspace(0, 5760, 5760) includes both ends, so
+      its spacing is slightly above 1 minute (drift of up to ~1 min at the
+      end of the window); negligible against the 60-min spacing of the
+      nodes.
+    - Sample['FRcH'].fillna('') is not assigned and has no effect.
+    - G.CurveCheck.py and S.CurveAgreement.py replicate the trimming exactly
+      to mark these hours.
+"""
 
 import pandas as pd
 import os
@@ -17,11 +53,15 @@ from scipy.interpolate import UnivariateSpline
 from scipy.interpolate import interp1d
 matplotlib.rcParams.update({'font.size': 15})
 # -----------------------------------------------------------#
-# Configuration variables
+# Parameters
 # -----------------------------------------------------------#
 import globals
 id=globals.id;
-
+# 540,544,552,567,584,596,559,563,570,575,588,591
+# id=588;
+# id="adolescent#006";
+# id="child#010";
+# id="adult#001";
 path2= globals.fileToSave;
 fileToRead="ComparisonJoinedNoActivity"+str(id);
 # fileToRead="ComparisonJoinedPeakNoActivity"+str(id);
@@ -45,6 +85,7 @@ medFlag=[];
 
 i=0;
 j=0;
+# One node per hour at minute :59, over 4 repeated days (96 samples).
 while dt < end:
        if j==1440:
           j=0;   
@@ -69,6 +110,7 @@ Sample['medFlag'].fillna('');
 #                    Keep the least reliable
 # -----------------------------------------------------------#
 
+# Green hours (Flag 3) are never trimmed; only the other hours are checked.
 SampleL = pd.DataFrame(Sample)
 Sample_=SampleL
 condition = SampleL['medFlag'] ==3;
@@ -76,7 +118,7 @@ SampleL = SampleL[~condition]
 if len(SampleL)>0:
 
        # -----------------------------------------------------------#
-       #                    Small outlier detection
+       #                    Interquartile trimming of the non-green hours
        # -----------------------------------------------------------#
 
        percentiles = SampleL['FRcH'].quantile([0.25, 0.5, 0.75])
@@ -100,9 +142,9 @@ if len(SampleL)>0:
        Sample_= pd.merge(Sample,SampleL,on='Key',how='left');
 
 
-       # -----------------------------------------------------------#
-       #                     Replace in original
-       # -----------------------------------------------------------#
+       # # # -----------------------------------------------------------#
+       # # #                     Replace in original
+       # # # -----------------------------------------------------------#
 
        # Define the condition for replacement
        condition_ = Sample_['medFlag_x']<3 
@@ -133,10 +175,16 @@ RChToBeInt=Sample_['FRcH'].to_numpy();
 # -----------------------------------------------------------#
 
 
-
+# Find indices of missing values
 missing_indices = np.isnan(RChToBeInt)
+
+# Find indices of non-missing values
 non_missing_indices = ~missing_indices
+
+# Create an array of indices
 indices = np.arange(len(RChToBeInt))
+
+# Interpolate missing values
 RChToBeInt[missing_indices] = np.interp(indices[missing_indices], indices[non_missing_indices], RChToBeInt[non_missing_indices])
 
 # -----------------------------------------------------------#
@@ -145,6 +193,7 @@ RChToBeInt[missing_indices] = np.interp(indices[missing_indices], indices[non_mi
 
 xvals = np.linspace(0, 5760, 5760);
 
+# Light smoothing spline over the 4 days; the second day is kept (rows 1439-2878).
 X_Y_Spline =  UnivariateSpline(medIndex, RChToBeInt);
 # X_Y_Spline =  UnivariateSpline(medIndex, medValue);
 X_Y_Spline.set_smoothing_factor(factor)

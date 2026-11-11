@@ -1,8 +1,39 @@
-#Code: 12.MergeRChBasalNoActZenodo.py
-#Description: Merge of values.
-#Created 10th May 2023
-#Author: mbaxdg6
+"""
+12.MergeRChBasalNoActZenodo.py
+Step 12 (InVivo): put the median within-hour change, its reliability and the
+basal insulin on the same minute grid, and draw them together.
 
+Created: 10 May 2023
+Author:  mbaxdg6 (Daniel Gasca Garcia)
+
+What it does
+    1. Joins the minute medians and flags (10.PivotGeneratormedians) with the
+       basal action curve (6.SimulationBasalAutomated, every 5 min).
+    2. Carries BasalInfused forward and interpolates ActiveInsulin over the
+       minutes between its 5-min values.
+    3. Draws two panels: basal rate and its action profile; median relative
+       change coloured by reliability (red, yellow, green).
+
+Inputs
+    globals.id, globals.fileToSave
+    processed/<id>/BGHourRelativeChange<id>0To24medians_wCN.csv   (10.PivotGeneratormediansZenodo.py)
+    processed/<id>/BasalSimulated<id>.csv                          (6.SimulationBasalAutomatedZenodo.py)
+
+Output
+    processed/<id>/ComparisonJoinedNoActivity<id>.csv
+        Key, MedRelChange, Flag, ActiveInsulin, BasalInfused
+
+Figure
+    results/invivo/figures/RelativeChange_2308.png (300 dpi), only for the
+    illustrative participant (globals.ILLUSTRATIVE_ID): Figure 1 of the manuscript
+
+Notes
+    - "NoAct": no activity data are used in this experiment.
+    - The figure converts mmol/L to mg/dL with 18.0 (not 18.0182); this
+      affects the secondary axis of the figure only.
+    - The figure is shown, not saved; it corresponds to Figure 1 of the
+      manuscript.
+"""
 
 import pandas as pd
 import os
@@ -11,11 +42,12 @@ import numpy as np
 import matplotlib
 matplotlib.rcParams.update({'font.size': 15})
 import globals
-# -----------------------------------------------------------#
-# Configuration variables
-# -----------------------------------------------------------#
-
 id=globals.id;
+# 540,544,552,567,584,596,559,563,570,575,588,591
+# id=588;
+# id="adolescent#006";
+# id="child#010";
+# id="adult#001";
 path2= globals.fileToSave;
 fileToRead1="BGHourRelativeChange"+str(id);
 fileToRead2="BasalSimulated"+str(id);
@@ -37,6 +69,7 @@ data2['Key']=data2['Key'].str.strip();
 # using merge function by setting how='left'
 output1 = pd.merge(data1,data2,on='Key',how='left');
 
+# Programmed rate holds between its 5-min values; the action curve is interpolated.
 output1['BasalInfused'].fillna(method='ffill', inplace=True);
 output2=output1.interpolate(limit=5, limit_direction="forward");
 output2.to_csv(str(path2)+str(fileToSave)+".csv",index=False);
@@ -44,7 +77,7 @@ output2.to_csv(str(path2)+str(fileToSave)+".csv",index=False);
 # -----------------------------------------------------------#
 #             Conversion to arrays (cleaner version)
 # -----------------------------------------------------------#
-
+# Convert Key to decimal hours (safer than splitting by :)
 key_time = pd.to_timedelta(output2["Key"] + ":00") if output2["Key"].str.count(":").eq(1).all() else pd.to_timedelta(output2["Key"])
 key_hours = key_time.dt.total_seconds() / 3600.0
 
@@ -56,6 +89,7 @@ Reliability = output2["Flag"].to_numpy()
 # -----------------------------------------------------------#
 #                 Uniform sampling by time
 # -----------------------------------------------------------#
+# One point every 'Sampling_time' hours (e.g. 0.1 h = 6 min)
 Sampling_time = float(Sampling_time)
 step = Sampling_time  # hours
 mask = np.isclose((key_hours / step) - np.round(key_hours / step), 0, atol=1e-6)
@@ -76,19 +110,20 @@ colors = np.array([color_map.get(int(v), "green") for v in T_Reliability])
 # -----------------------------------------------------------#
 #                       Figure and style
 # -----------------------------------------------------------#
-plt.rcParams.update({"font.size": 13})
+plt.rcParams.update({"font.size": 12})   # same figure format as papers 1 and 2
 fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True, figsize=(11, 7))
-fig.suptitle(f"Blood Glucose Dynamics — ID: {id}", y=0.98, fontsize=16)
+if globals.FIGURE_TITLES:                # titles go in the caption of the manuscript
+    fig.suptitle(f"Blood Glucose Dynamics — ID: {id}", y=0.98, fontsize=14)
 
 # -----------------------------------------------------------#
 #                      Insulin panel
 # -----------------------------------------------------------#
 ax1.set_ylabel("Basal Insulin (U)")
-ax1.axhline(0, linewidth=1.2, color="black")
+ax1.axhline(0, linewidth=2, color="black")
 ax1.plot(T_Key, T_ActiveInsulin, "o", label="Simulated Action Profile")
 ax1.plot(T_Key, T_BasalInfused, "o--", label="Preprogrammed Basal Rate")
 ax1.grid(which="major", color="#DDDDDD", linewidth=0.8)
-ax1.grid(which="minor", color="#EEEEEE", linestyle=":", linewidth=0.5)
+ax1.grid(which="minor", color="#DDDDDD", linestyle=":", linewidth=0.5)
 major_ticks = np.arange(0, 24 + 1e-9, 5)
 minor_ticks = np.arange(0, 24 + 1e-9, 1)
 ax1.set_xticks(major_ticks)
@@ -98,19 +133,17 @@ ax1.legend(loc="upper left")
 # -----------------------------------------------------------#
 #             Relative Blood Glucose panel
 # -----------------------------------------------------------#
+# Choose base unit for left axis
+BASE_UNIT = "mmol/L"  # change to "mg/dL" if your input is in mg/dL
 
-BASE_UNIT = "mmol/L"  
-
-# -----------------------------------------------------------#
-#                          Plot
-# -----------------------------------------------------------#
+# Conversion functions
 def mmol_to_mg(y):  # mmol/L -> mg/dL
-    return y * 18.0
+    return y * globals.MGDL_PER_MMOL
 
 def mg_to_mmol(y):  # mg/dL -> mmol/L
-    return y / 18.0
+    return y / globals.MGDL_PER_MMOL
 
-
+# Plot series in chosen base unit
 if BASE_UNIT.lower() == "mmol/l":
     y_primary = T_MedRelChange
     left_label = "BG Relative Change (mmol/L)"
@@ -123,7 +156,7 @@ else:
     sec.set_ylabel("BG Relative Change (mmol/L)")
 
 # Base line and series
-ax2.axhline(0, linewidth=1.2, color="black")
+ax2.axhline(0, linewidth=2, color="black")
 ax2.plot(T_Key, y_primary, "o--", label="BG Rel. Change (series)", zorder=1)
 
 # Points colored by reliability
@@ -140,7 +173,7 @@ for x, y, r, c in zip(T_Key, y_primary, T_Reliability, colors):
 ax2.set_ylabel(left_label)
 ax2.set_xlabel("Time (h)")
 ax2.grid(which="major", color="#DDDDDD", linewidth=0.8)
-ax2.grid(which="minor", color="#EEEEEE", linestyle=":", linewidth=0.5)
+ax2.grid(which="minor", color="#DDDDDD", linestyle=":", linewidth=0.5)
 ax2.set_xticks(major_ticks)
 ax2.set_xticks(minor_ticks, minor=True)
 
@@ -148,7 +181,18 @@ ax2.set_xticks(minor_ticks, minor=True)
 handles, labels = ax2.get_legend_handles_labels()
 priority = {"Low reliability of BG": 0, "Medium reliability of BG": 1, "High reliability of BG": 2, "BG Rel. Change (series)": 3}
 order = np.argsort([priority.get(lbl, 99) for lbl in labels])
-ax2.legend([handles[i] for i in order], [labels[i] for i in order], loc="upper left", bbox_to_anchor=(0.80, 1.02))
+ax2.legend([handles[i] for i in order], [labels[i] for i in order], loc="best", fontsize=10, framealpha=0.9)
 
 plt.tight_layout(rect=[0, 0, 1, 0.97])
-plt.show()
+
+# -----------------------------------------------------------#
+#                     Save the figure
+# -----------------------------------------------------------#
+# Saved only for the illustrative participant (globals.ILLUSTRATIVE_ID, 2308):
+# it is Figure 1 of the manuscript.
+if str(id) == globals.ILLUSTRATIVE_ID:
+    os.makedirs(globals.path3, exist_ok=True)
+    out = os.path.join(globals.path3, f"RelativeChange_{id}.png")
+    plt.savefig(out, dpi=300, bbox_inches="tight")
+    print("Saved:", os.path.abspath(out))
+plt.close("all")

@@ -1,8 +1,24 @@
-#Code: 8.RelativeChangeTest.py
-#Description: Computation of relative changes.
-#Created 19th April 2023
-#Author: mbaxdg6
+"""
+8.RelativeChangeTest.py
+Step 8 (InSilico): change of the simulated glucose within each hour.
 
+Created: 19 April 2023
+Author:  mbaxdg6 (Daniel Gasca Garcia)
+
+What it does
+    Same as InVivo/8.RelativeChangeZenodo.py: subtracts the first value of
+    each hour and keeps the last value, in mg/dL.
+
+Inputs / Outputs
+    BGHourInterpolated<id2><i>To<i+1>.csv
+        -> BGHourRelativeChange<id2><i>To<i+1>.csv and ...lastValues.csv
+
+Notes
+    - Values are in mg/dL here (mmol/L in InVivo).
+    - The steps of this chain are the InVivo steps applied to ONE simulated
+      day, in mg/dL, with files named by the virtual patient (id2) inside
+      processed/<id>/ of the participant.
+"""
 
 import datetime 
 import pandas as pd
@@ -14,9 +30,7 @@ import numpy as np
 import csv
 pd.options.mode.chained_assignment = None  # default='warn'
 import globals
-# -----------------------------------------------------------#
-# Configuration variables
-# -----------------------------------------------------------#
+# --- Configurable global variable ---
 id=globals.id;
 id2=globals.id2;
 path2=globals.fileToSave
@@ -70,8 +84,4 @@ for i in range(24):
         dt.append(dt1); 
     dt=pd.DataFrame(dt, columns=['Last_values'])  
     dt.to_csv(str(path2)+str(fileToSave)+str(i)+str("To")+str(i+1)+"lastValues"+".csv",index=False);
-    print(dt); 
-
-
-
-
+    print(dt);

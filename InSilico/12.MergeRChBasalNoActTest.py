@@ -1,8 +1,29 @@
-#Code: 12.MergeRChBasalNoActTest.py
-#Description: Merge of values.
-#Created 10th May 2023
-#Author: mbaxdg6
+"""
+12.MergeRChBasalNoActTest.py
+Step 12 (InSilico): put the median within-hour change of the simulation and
+the basal insulin on the same minute grid, and draw them together.
 
+Created: 10 May 2023
+Author:  mbaxdg6 (Daniel Gasca Garcia)
+
+What it does
+    Same join as InVivo/12.MergeRChBasalNoActZenodo.py (medians + flags with
+    BasalSimulated<id2>, BasalInfused carried forward, ActiveInsulin
+    interpolated), plus the two-panel figure.
+
+Inputs
+    BGHourRelativeChange<id2>0To24medians_wCN.csv, BasalSimulated<id2>.csv
+
+Output
+    processed/<id>/ComparisonJoinedNoActivity<id2>.csv
+
+Notes
+    - The figure code is an earlier version of the InVivo one (points every
+      6 min taken where i % 6 == True; the legend is not reordered). It is
+      shown, not saved.
+    - The relative-change axis is labelled "(mg/dL) (mmol/L)" but the
+      values are in mg/dL; it affects the figure only.
+"""
 
 import pandas as pd
 import os
@@ -11,11 +32,7 @@ import numpy as np
 import matplotlib
 matplotlib.rcParams.update({'font.size': 15})
 import globals
-
-# -----------------------------------------------------------#
-# Configuration variables
-# -----------------------------------------------------------#
-
+# --- Configurable global variable ---
 id=globals.id;
 print(id)
 id2=globals.id2;
@@ -187,6 +204,3 @@ else:
     # ax2.legend([handles[idx] for idx in order],[labels[idx] for idx in order],bbox_to_anchor = (0.875, 1.035), loc='upper left');
 
 plt.show();
-
-
-

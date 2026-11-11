@@ -1,8 +1,29 @@
-#Code: 6.SplitHoursZenodo.py
-#Description: Split values in different files.
-#Created 19th April 2023
-#Author: mbaxdg6
+"""
+6.SplitHoursZenodo.py
+Step 6 (InVivo, meal-based branch): split the joined glucose file into 24
+hourly files.
 
+Created: 19 April 2023
+Author:  mbaxdg6 (Daniel Gasca Garcia)
+
+What it does
+    For each hour i (0 to 23), copies the rows of BGwNMLeftJoined whose Key
+    falls between i:00:00 and i:59:59 into BGHour<id><i>To<i+1>.csv, with
+    the same columns.
+
+Inputs
+    globals.id, globals.fileToSave
+    processed/<id>/BGwNMLeftJoined<id>.csv   (5.MergeBGCleanZenodo.py)
+
+Outputs
+    processed/<id>/BGHour<id>0To1.csv ... BGHour<id>23To24.csv   60 rows each
+
+Notes
+    - Key is read as the SECOND field of each row (row[1]) because the
+      joined file carries the saved index as its first column.
+    - The input is read twice per hour (csv reader for the rows, pandas for
+      the header); slow but harmless.
+"""
 
 import datetime 
 import pandas as pd
@@ -13,17 +34,18 @@ from matplotlib import pyplot as plt
 import numpy as np
 import csv
 import globals
-
-# -----------------------------------------------------------#
-# Configuration variables
-# -----------------------------------------------------------#
 id=globals.id;
+# id=588;
+# id="adolescent#006";
+# id="child#010";
+# id="adult#001";
 path2= globals.fileToSave;
 fileToRead="BGwNMLeftJoined"+str(id)+".csv";
 fileToSave="BGHour"+str(id);
 
 
 # Loop over all day round
+# row[1] is Key: the first column of the joined file is the saved index.
 for i in range(24):
     with open(str(path2)+str(fileToRead)) as csv_file:
                 reader = csv.reader(csv_file);
@@ -41,4 +63,3 @@ for i in range(24):
                                 if dt1.strftime('%H:%M:%S')<=split.strftime('%H:%M:%S')<=dt2.strftime('%H:%M:%S'):
                                     # print (row[1]);
                                     csv_output.writerow(row);
-

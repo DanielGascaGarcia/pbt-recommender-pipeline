@@ -1,8 +1,22 @@
-#Code: 6.SplitHoursTest.py
-#Description: Split values in different files.
-#Created 19th April 2023
-#Author: mbaxdg6
+"""
+6.SplitHoursTest.py
+Step 6 (InSilico): split the joined simulated glucose into 24 hourly files.
 
+Created: 19 April 2023
+Author:  mbaxdg6 (Daniel Gasca Garcia)
+
+What it does
+    Same as InVivo/6.SplitHoursZenodo.py, on BGwNMLeftJoined<id2>.csv.
+
+Inputs / Outputs
+    processed/<id>/BGwNMLeftJoined<id2>.csv -> BGHour<id2><i>To<i+1>.csv
+
+Notes
+    - Key is read as row[1] because of the saved index column.
+    - The steps of this chain are the InVivo steps applied to ONE simulated
+      day, in mg/dL, with files named by the virtual patient (id2) inside
+      processed/<id>/ of the participant.
+"""
 
 import datetime 
 import pandas as pd
@@ -14,9 +28,7 @@ import numpy as np
 import csv
 import globals
 
-# -----------------------------------------------------------#
-# Configuration variables
-# -----------------------------------------------------------#
+# --- Configurable global variable ---
 id=globals.id;
 print(id)
 id2=globals.id2;
@@ -46,4 +58,3 @@ for i in range(24):
                                 if dt1.strftime('%H:%M:%S')<=split.strftime('%H:%M:%S')<=dt2.strftime('%H:%M:%S'):
                                     # print (row[1]);
                                     csv_output.writerow(row);
-

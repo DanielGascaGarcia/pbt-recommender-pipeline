@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use this deposit, please cite as below."
-title: "Personalised Basal Tuner — Experiment 3 (Recommender Evaluation, In Silico)"
+title: "Personalised Basal Tuner - Experiment 3 (Recommender Evaluation, In Silico)"
 authors:
   - family-names: "Gasca Garcia"
     given-names: "Daniel"
@@ -14,5 +14,5 @@ keywords:
   - "Recommender system"
   - "In silico"
 license: "MIT"
-version: "1.0.0"
-date-released: "2025-10-21"
+version: "2.0.0"
+date-released: "2026-11-11"

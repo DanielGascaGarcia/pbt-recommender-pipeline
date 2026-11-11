@@ -1,7 +1,18 @@
-#Code: 7.InterpolationBGHourlyTest.py
-#Description: interpolate values.
-#Created 19th April 2023
-#Author: mbaxdg6
+"""
+7.InterpolationBGHourlyTest.py
+Step 7 (InSilico): fill gaps of up to 5 minutes in each hourly file.
+
+Created: 19 April 2023
+Author:  mbaxdg6 (Daniel Gasca Garcia)
+
+What it does
+    Same as InVivo/7.InterpolationBGHourlyZenodo.py. The simulation has a
+    value every minute, so there is nothing to fill; the step is kept so the
+    chain is identical.
+
+Inputs / Outputs
+    BGHour<id2><i>To<i+1>.csv -> BGHourInterpolated<id2><i>To<i+1>.csv
+"""
 
 import warnings
 import datetime 
@@ -16,9 +27,7 @@ import globals
 
 
 
-# -----------------------------------------------------------#
-# Configuration variables
-# -----------------------------------------------------------#
+# --- Configurable global variable ---
 id=globals.id;
 print(id)
 id2=globals.id2;

@@ -1,7 +1,57 @@
-#Code: 14.SimulationBolusCHOPy-mgipsimTest.py
-#Description: Adviser of new insluin doses.
-#Created 1th May 2024
-#Author: mbaxdg6
+"""
+14.SimulationBolusCHOPy-mgipsimTest.py   (header of the original file reads 14.SimulationBolusCHO.py)
+Step 14 (InSilico): the PBT recommendation. From the guide of the simulated
+profile, compute hour by hour the basal change that flattens it, and the
+recommended basal profile.
+
+Created: 1 May 2024
+Author:  mbaxdg6 (Daniel Gasca Garcia)
+
+What it does
+    1. Reads the guide BGRChInt (mg/dL) and the correction factor (ISF,
+       mg/dL per U) of the virtual patient.
+    2. For each hour of the day (the day repeated three times, hours 20 to
+       51), takes the deviation of the guide: positive (basal deficit) or
+       negative (basal excess).
+    3. Sizes the correction as deviation / ISF, split into 12 equal doses
+       over one hour starting 2 h before the deviation, and models its
+       effect with the OpenAPS insulin activity curve (duration 600 min,
+       peak 60 min). The effect is subtracted (deficit) or added (excess)
+       to the guide before the next hour is processed.
+    4. Places each dose in the recommended profile LEAD_HOURS (2, globals.py) h before
+       the deviation it corrects.
+    5. Recommended rate = programmed rate + change. A negative rate is set
+       to 0 and the reduction that does not fit is subtracted NEGATIVE_RATE_SHIFT_MIN (120, globals.py) min
+       earlier (wrapping to the end of the day), never below 0.
+    6. Each hour keeps one value (the first 5 minutes take the value of the
+       rest of the hour).
+
+Inputs
+    globals.id, globals.id2, globals.path (Py-mgipsim patients), globals.fileToSave
+    processed/<id>/SampleJoined<id2>.csv   (step 13; BGRChInt and BasalInfused)
+    <path>/<id2>.json   correction_bolus of the virtual patient
+
+Outputs (in processed/<id>/)
+    SampledAdvised<id2>_1.csv       guide before and after, change per 5 min
+    SampledAdvised<id2>_final.csv   + RecIns, AdjustedRecIns (recommended
+                                    rate, U/h), InsChange (change, sign
+                                    reversed for the figure)
+
+Notes
+    - LEAD_HOURS = 2 places each dose where it was sized (it was applied in
+      the hour of the deviation before). The 22-23 h of the profile receive
+      the corrections computed for 0-1 h; since each simulated day starts at
+      midnight, they do not act on the early hours of the evaluated day.
+    - The negative-rate rule subtracts the excess (it added it before,
+      which increased insulin); only Man02 was affected.
+    - The comment "ISF [mmol/L*U]" is mislabelled: the value is in mg/dL
+      per U, consistent with the guide in mg/dL.
+    - The figures are shown, not saved; the orchestrator sets the Agg
+      backend.
+    - The main loop runs once (r = 0); the code for further iterations is
+      kept but not used.
+"""
+
 import datetime 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -16,9 +66,7 @@ import numpy as np
 import json
 import csv
 import globals
-# -----------------------------------------------------------#
-# Configuration variables
-# -----------------------------------------------------------#
+# --- Configurable global variable ---
 id=globals.id;
 print(id)
 id2=globals.id2;
@@ -520,9 +568,21 @@ for r in range(1):
     h_i=4;
     h_f=4;
 
+    # Timing of the recommended change. The dose for the deviation read at
+    # hour k is sized above assuming it is delivered from k-2 h to k-1 h
+    # (get_insulin_type: time = peaks - 2). LEAD_HOURS places it there in the
+    # recommended profile too: the day hour h receives the dose computed for
+    # hour h + LEAD_HOURS. The day is repeated three times, so doses near
+    # midnight wrap to the end of the same day. LEAD_HOURS is set in globals.py;
+    # LEAD_HOURS = 0 reproduces the
+    # earlier version, in which each dose was applied in the hour of the
+    # deviation.
+    # (see the Notes of the header)
+    LEAD_HOURS = globals.LEAD_HOURS
+
     In_i=Insulin_ch[:h_i*12]
     In_f=Insulin_ch[(k-range_i+1-h_f)*12:]
-    In_int=Insulin_ch[h_i*12:(k-range_i+1-h_f)*12]
+    In_int=Insulin_ch[(h_i+LEAD_HOURS)*12:(k-range_i+1-h_f+LEAD_HOURS)*12]
         # -----------------------------------------------------------#
         # Modifying final Insulin array
         # -----------------------------------------------------------#
@@ -604,23 +664,20 @@ datafinal['RecIns']=datafinal[f'{prefix}_sum']+datafinal['BasalInfused'];
         # Correction of negative values
         # -----------------------------------------------------------#
 # Copy the original 'RecIns' values to a new column for comparison
+# Recommended rate = programmed rate + change; negative rates are corrected below.
 datafinal['AdjustedRecIns'] = datafinal['RecIns'];
 
-# Adjust the 'RecIns' values for the first 60 rows by adding negative values to the last 60 rows
-for i in range(120):
+# A rate cannot be negative. When the recommended reduction is larger than the
+# rate of that minute, the rate is set to zero and the part of the reduction
+# that does not fit is moved NEGATIVE_RATE_SHIFT_MIN (120, globals.py) minutes earlier (wrapping to the end of the
+# day for the first 120 minutes), where it is subtracted; that rate is also
+# kept at or above zero, so a reduction never becomes an increase.
+for i in range(len(datafinal)):
     if datafinal.at[i, 'AdjustedRecIns'] < 0:
-        # Add the negative value to the corresponding value in the last 60 rows
-        datafinal.at[len(datafinal)-120+i, 'AdjustedRecIns'] += abs(datafinal.at[i, 'AdjustedRecIns'])
-        # Set the current value to zero
+        excess = abs(datafinal.at[i, 'AdjustedRecIns'])
         datafinal.at[i, 'AdjustedRecIns'] = 0;
-
-# Adjust the 'RecIns' values as before, but now work on 'AdjustedRecIns' for the remaining rows
-for i in range(120, len(datafinal)):
-    if datafinal.at[i, 'AdjustedRecIns'] < 0:
-        # Add the negative value to the value 60 minutes before
-        datafinal.at[i - 120, 'AdjustedRecIns'] += abs(datafinal.at[i, 'AdjustedRecIns'])
-        # Set the current value to zero
-        datafinal.at[i, 'AdjustedRecIns'] = 0;
+        j = i - globals.NEGATIVE_RATE_SHIFT_MIN if i >= globals.NEGATIVE_RATE_SHIFT_MIN else len(datafinal) - globals.NEGATIVE_RATE_SHIFT_MIN + i
+        datafinal.at[j, 'AdjustedRecIns'] = max(0.0, datafinal.at[j, 'AdjustedRecIns'] - excess)
 datafinal['InsChange']=+datafinal['AdjustedRecIns']-datafinal['BasalInfused'];
 
 
@@ -724,5 +781,3 @@ mean_value = np.mean(T_AdjustedRecIns)
 print(mean_value)
 
 datafinal.to_csv(str(path2)+str(fileToSave)+"_"+"final"+".csv",index=False);
-
-

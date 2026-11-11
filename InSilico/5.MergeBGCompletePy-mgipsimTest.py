@@ -1,8 +1,29 @@
-#Code: 5.MergeBGCompletePy-mgipsimTest.py
-#Description: Merge of values.
-#Created 11th April 2023
-#Author: mbaxdg6
+"""
+5.MergeBGCompletePy-mgipsimTest.py
+Step 5 (InSilico): join the simulated glucose day(s) onto the minute grid,
+one day per column.
 
+Created: 11 April 2023
+Author:  mbaxdg6 (Daniel Gasca Garcia)
+
+What it does
+    Left-joins BGValue of each BG<id2>_<k>.csv, as BGValue0, BGValue1, ...,
+    onto the 1,440-minute grid of 3.PivotGenerator.
+
+Inputs
+    globals.id, globals.id2, globals.fileToSave
+    processed/<id>/PivotBG_wCN.csv, processed/<id>/BG<id2>_<k>.csv   (step 0)
+
+Output
+    processed/<id>/BGwNMLeftJoined<id2>.csv   (unnamed index), Key, BGValue0, ...
+
+Notes
+    - No meal removal: the basal-only simulation has no meals. The name
+      "BGwNM" is kept from InVivo so the later steps are the same.
+    - Saved WITH the pandas index, as in InVivo (see the Notes of
+      InVivo/5.MergeBGCleanZenodo.py).
+    - The simulation has a value every minute, so the grid has no gaps.
+"""
 
 import datetime 
 import pandas as pd
@@ -13,13 +34,13 @@ from matplotlib import pyplot as plt
 import numpy as np
 import re
 import globals
+# Parameters
 
+# Parameters
 filesBG=[];
 
-# -----------------------------------------------------------#
-# Configuration variables
-# -----------------------------------------------------------#
 
+# --- Configurable global variable ---
 id2=globals.id2;
 id=globals.id;
 
@@ -49,4 +70,5 @@ for j in range(len(filesBG)-1):
         data3['Key']=data3['Key'].str.strip();
         output1 = pd.merge(output1,data3,suffixes=('',''),on='Key',how='left');
 # Saving the result
+# Saved WITH the index, as in InVivo.
 output1.to_csv(str(path2)+str(fileToSave));

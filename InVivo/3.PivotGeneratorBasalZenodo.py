@@ -1,16 +1,36 @@
-#Code: 3.PivotGeneratorBasalZenodo.py
-#Description: Creating pivot table for merge.
-#Created 22ND March 2023
-#Author: mbaxdg6
+"""
+3.PivotGeneratorBasalZenodo.py   (header of the original file reads 3.PivotGeneratorBasal.py)
+Step 3 (InVivo, basal): write the minute grid of one day, used to join the
+daily basal files in 4.MergeBasal.
+
+Created: 22 March 2023
+Author:  mbaxdg6 (Daniel Gasca Garcia)
+
+What it does
+    Writes the 1,440 times of a day (00:00:00 ... 23:59:00), first without a
+    header (Pivot.csv) and then with the column name Key (Pivot_wCN.csv).
+
+Inputs
+    globals.id, globals.fileToSave
+
+Outputs (in processed/<id>/)
+    Pivot.csv, Pivot_wCN.csv
+
+Notes
+    - Same grid as 3.PivotGeneratorZenodo.py, written to a different file
+      name for the basal branch.
+"""
 
 import datetime 
 import pandas as pd
 
 import globals
 # -----------------------------------------------------------#
-# Configuration variables
+# Configuration
 # -----------------------------------------------------------#
 
+
+# --- Configurable global variable ---
 id = globals.id;
 
 dt = datetime.datetime(2010, 12, 1);
@@ -37,4 +57,4 @@ for j in secArray:
 
 df = pd.read_csv(str(path2)+"Pivot"+".csv",  header=None);
 df.rename(columns={0: 'Key'}, inplace=True);
-df.to_csv(str(path2)+"Pivot"+"_wCN"+".csv", index=False); # save to new csv 
+df.to_csv(str(path2)+"Pivot"+"_wCN"+".csv", index=False); # save to new csv

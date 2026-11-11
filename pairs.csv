@@ -1,0 +1,24 @@
+# Real participant -> most similar virtual patient in py-mgipsim
+# (paper table "Insulin parameters per participant", column "Similar patient").
+# source = zenodo   -> T1D-UOM, fetched by data/S.GetZenodoData.py
+# source = clinical -> clinical dataset (Thabit et al.), converted by data/S.ConvertClinicalData.py
+# Clinical IDs follow the file names (Mann01..Mann12); the paper labels them Man01..Man12 (M001..M012).
+# Lines starting with # are ignored.
+id,id2,source
+2301,Patient_5,zenodo
+2304,Patient_2,zenodo
+2307,Patient_16,zenodo
+2308,Patient_16,zenodo
+2309,Patient_5,zenodo
+Mann01,Patient_5,clinical
+Mann02,Patient_14,clinical
+Mann03,Patient_6,clinical
+Mann04,Patient_2,clinical
+Mann05,Patient_15,clinical
+Mann06,Patient_4,clinical
+Mann07,Patient_20,clinical
+Mann08,Patient_4,clinical
+Mann09,Patient_19,clinical
+Mann10,Patient_16,clinical
+Mann11,Patient_13,clinical
+Mann12,Patient_5,clinical

@@ -1,9 +1,28 @@
-#Code: 6.SimulationBasalAutomatedTest.py
-#Description: Simulation of basal values.
-#Created 22nd March 2022
-#Author: mbaxdg6
+"""
+6.SimulationBasalAutomatedTest.py   (header of the original file reads S.SimulationBasal.py)
+Step 6 (InSilico): insulin action curve of the simulated basal profile.
 
+Created: 22 March 2022
+Author:  mbaxdg6 (Daniel Gasca Garcia)
 
+What it does
+    Same procedure as InVivo/6.SimulationBasalAutomatedZenodo.py, applied to
+    BasalImputed<id2>.csv: 5-min doses of rate / 12 U, Rayleigh action
+    profile of rapid-acting insulin, action after midnight folded back onto
+    the start of the day.
+
+Inputs
+    globals.id, globals.id2, globals.fileToSave
+    processed/<id>/BasalImputed<id2>.csv   (5.FillGapsBasalTest.py)
+
+Output
+    processed/<id>/BasalSimulated<id2>.csv   Key (every 5 min), ActiveInsulin, BasalInfused
+
+Notes
+    - Samples at minutes 1, 6, 11, ... (i % 5 == True), as in InVivo.
+    - BasalInfused (the rate) is the column used later by step 14;
+      ActiveInsulin only feeds the figure of step 12.
+"""
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -18,8 +37,10 @@ matplotlib.rcParams.update({'font.size': 12})
 
 import globals
 # -----------------------------------------------------------#
-# Configuration variables
+# Parameters
 # -----------------------------------------------------------#
+
+# --- Configurable global variable ---
 id=globals.id;
 id2=globals.id2;
 
@@ -244,4 +265,3 @@ Basal_infused=pd.DataFrame(Basal_infused, columns=['BasalInfused']);
 df['ActiveInsulin']=IF_F;
 df['BasalInfused']=Basal_infused;
 df.to_csv(str(path2)+str(fileToSave),index=False);
-

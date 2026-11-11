@@ -1,23 +1,18 @@
-# Byte-compiled / cache
+# Data (fetched by S.GetZenodoData.py or provided on request; not versioned)
+raw/
+data_cache/
+ManchesterCSCoordinatedDiabetesStudy-*/
+
+# Regenerated on every run
+processed/
+logs/
+demo_output/
+results*/
+InSilico/simulations/
 __pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-*.egg-info/
+*.pyc
 
-# OS / editors
-.DS_Store
-Thumbs.db
-.vscode/
-.idea/
-
-# Data & outputs
-work/
-data/
-**/*.xlsx
-**/*.csv
-**/*.png
-
-# Python envs
-.venv/
-.env/
+# Local material, not part of the package
+Old/
+Sleep XT files/
+gitignore

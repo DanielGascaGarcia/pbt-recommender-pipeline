@@ -1,12 +1,43 @@
-#Code: 0.GeneratorExamplesPy-mgipsimForEGPtest.py 
-#Description: Create examples from  py-mgipsim simulator.
-#Created  29th March 2025
-#Author: mbaxdg6
+"""
+0.GeneratorExamplesPy-mgipsimForEGPtest.py   (header of the original file reads 0.GeneratorExamplespy-mgipsim.py)
+Step 0 (InSilico): read the basal-only simulation of the virtual patient
+matched to the participant and write its basal profile and glucose in the
+file layout of the InVivo steps.
 
+Created: 24 October 2022
+Author:  mbaxdg6 (Daniel Gasca Garcia)
+
+What it does
+    1. Basal: reads the starting basal profile of Simulation_<id2>/
+       (simulation_settings_original.json, or simulation_settings.json if
+       there is no copy yet) and expands it to one value per minute, in
+       U/min (rate / 60).
+    2. Glucose: reads state_results.xlsx (sheet Patient_0, IG in mmol/L),
+       converts it to mg/dL (x MGDL_PER_MMOL) and splits it into days of
+       1,440 minutes.
+
+Inputs
+    globals.id, globals.id2, globals.fileToSave, globals.sim_dir,
+    globals.MGDL_PER_MMOL
+    InSilico/simulations/<id>/Simulation_<id2>/simulation_settings(_original).json
+    InSilico/simulations/<id>/Simulation_<id2>/state_results.xlsx
+
+Outputs (in processed/<id>/)
+    BasalLeftJoined_ini_<id2>.csv, BasalLeftJoined<id2>.csv   Key, BasalValue0 (U/min)
+    BGDay_ini_<id2>.csv                                       Index, Key, BGValue (mg/dL)
+    BG<id2>_<k>.csv                                           one file per simulated day
+
+Notes
+    - Reading the _original copy keeps every run starting from the same
+      profile, even after step 15 has written the recommendation into
+      simulation_settings.json.
+    - From here on, the in-silico chain works in mg/dL (the InVivo chain
+      works in mmol/L).
+    - The basal-only run lasts one day, so there is one BG<id2>_1.csv.
+"""
 
 from datetime import timedelta
 from datetime import datetime
-from simglucose.controller.pid_ctrller import PIDController
 import csv
 import pandas as pd
 import os
@@ -21,11 +52,11 @@ import math
 # Configuration variables
 # -----------------------------------------------------------#
 
-
+# --- Configurable global variable ---
 id=globals.id;
 id2=globals.id2;
 
-
+# --- Folder path setup ---
 filetoread = globals.fileToSave;
 # Location of patient files
 path = globals.path
@@ -36,13 +67,21 @@ BGFile='/state_results.xlsx';
 
 
 new_folder_name = f"Simulation_{id2}"
-new_folder_path = os.path.join(filetoread, new_folder_name)
+new_folder_path = globals.sim_dir(id2, id).rstrip("/")
 # -----------------------------------------------------------#
 # Read Basal rates
 # -----------------------------------------------------------#
 
 
-file_path = os.path.join(new_folder_path, "simulation_settings.json")
+# The basal profile of the basal-only simulation (the one that produced
+# state_results.xlsx). Once 15.GeneratorFileToPy-mgipsimTest.py has run,
+# simulation_settings.json holds the recommended profile and the starting one
+# is kept in simulation_settings_original.json, so read that copy when it exists.
+# This keeps every run starting from the same profile.
+# Starting profile: the _original copy if step 15 has already written the recommendation.
+file_path = os.path.join(new_folder_path, "simulation_settings_original.json")
+if not os.path.isfile(file_path):
+    file_path = os.path.join(new_folder_path, "simulation_settings.json")
 # Load JSON from file
 with open(file_path, 'r') as f:
     data = json.load(f)
@@ -51,9 +90,6 @@ with open(file_path, 'r') as f:
 
 basal_rate=data["inputs"]["basal_insulin"]["magnitude"]
 basal_rate_starting_pont=data["inputs"]["basal_insulin"]["start_time"]
-# Save the updated JSON back to the file
-with open(file_path, 'w') as f:
-    json.dump(data, f, indent=4)
 
 
 # Flatten the lists of magnitudes and start times
@@ -100,7 +136,7 @@ file_name_2 = f"{fileToSave}/BasalLeftJoined{str(id2)}.csv"
 df.to_csv(file_name_1, index=False)
 df.to_csv(file_name_2, index=False)
 
-
+# Inform user
 print(f"Data saved to:\n  → {file_name_1}\n  → {file_name_2}")
 
 # -----------------------------------------------------------#
@@ -109,15 +145,16 @@ print(f"Data saved to:\n  → {file_name_1}\n  → {file_name_2}")
 
 print(new_folder_path);
 
-#  Load the Excel file
+# # Load the Excel file
 file_path = new_folder_path+BGFile
 sheet_name = "Patient_0"  
 
-#  Read the sheet into a DataFrame
+# # Read the sheet into a DataFrame
 dataBG = pd.read_excel(file_path, sheet_name=sheet_name)
 
 dataBG.columns = dataBG.columns.str.strip().str.replace(r'[\r\n\t\u00A0]', '', regex=True)
-dataBG['BGValue'] = dataBG['IG (mmol/L)'] * 18.0182
+# The in-silico chain works in mg/dL.
+dataBG['BGValue'] = dataBG['IG (mmol/L)'] * globals.MGDL_PER_MMOL
 BG_values = dataBG['BGValue']
 
 
@@ -125,12 +162,12 @@ BG_values = dataBG['BGValue']
 # Save values
 # -----------------------------------------------------------#
 
-
+# Assume 1 value per minute, so 1440 per day
 records_per_day = 1440
 total_records = len(dataBG)
 num_days = math.ceil(total_records / records_per_day)
 
-
+# Create time key for one day (repeated)
 time_range = pd.date_range(start="00:00:00", end="23:59:59", freq="1min").time
 key = [t.strftime("%H:%M:%S") for t in time_range] * num_days
 
@@ -162,7 +199,7 @@ subset_df.to_csv(fileToSave + '/BGDay_ini_' + str(id2) + '.csv', index=False)
 
 # Load the CSV file
 file_path = fileToSave  + '/BGDay_ini_' + str(id2) + '.csv' 
-df = pd.read_csv(file_path) 
+df = pd.read_csv(file_path)  # Adjust delimiter if needed
 
 # Define the chunk size
 chunk_size = 1440  
