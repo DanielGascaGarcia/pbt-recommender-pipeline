@@ -203,18 +203,23 @@ simulator_runs/{id}/Simulation_{id2}/
 `InSilico/simulations/` is a working copy: InSilico rebuilds it from
 `simulator_runs/` on every run, and it can be deleted at any time.
 
-Then run the module (`python 17.ScriptforTestExperiment3.py insilico`). For each pair in
-`pairs.csv`, `17.ScriptforTestoPy-mgipsimForEGPTest.py` cleans
-`processed/{id}/`, rebuilds `simulations/{id}/` with the basal‑only run from
-`simulator_runs/` and runs:
-`0.GeneratorExamplesPy-mgipsimForEGPtest.py` → `3.PivotGeneratorZenodo.py` →
-`5.MergeBGCompletePy-mgipsimTest.py` → `5.FillGapsBasalTest.py` →
-`6.SimulationBasalAutomatedTest.py` → `6.SplitHoursTest.py` →
-`7.InterpolationBGHourlyTest.py` → `8.RelativeChangeTest.py` →
-`9.BoxplotTest.py` → `10.PivotGeneratormediansTest.py` →
-`12.MergeRChBasalNoActTest.py` → `13.InterpolationRChTest.py` →
-`14.SimulationBolusCHOPy-mgipsimTest.py` → `15.GeneratorFileToPy-mgipsimTest.py`
-→ `S.BuildMealScenarios.py`.
+**InSilico module.** Run `python 17.ScriptforTestExperiment3.py insilico`. For
+each pair in `pairs.csv`, `17.ScriptforTestoPy-mgipsimForEGPTest.py` cleans
+`processed/{id}/`, rebuilds `InSilico/simulations/{id}/` with the basal‑only run
+from `simulator_runs/`, and runs these steps in order:
+
+| Step | Script | What it does |
+|---|---|---|
+| 0 | `0.GeneratorExamplesPy-mgipsimForEGPtest.py` | reads the basal‑only simulation and its starting basal profile |
+| 3 | `3.PivotGeneratorZenodo.py` | 1440‑minute grid of the day |
+| 5 | `5.MergeBGCompletePy-mgipsimTest.py`, `5.FillGapsBasalTest.py` | places glucose and basal on the grid |
+| 6 | `6.SimulationBasalAutomatedTest.py`, `6.SplitHoursTest.py` | insulin action of the basal profile; split by hour |
+| 7–8 | `7.InterpolationBGHourlyTest.py`, `8.RelativeChangeTest.py` | hourly glucose and relative change |
+| 9–10 | `9.BoxplotTest.py`, `10.PivotGeneratormediansTest.py` | hourly medians and reliability |
+| 12–13 | `12.MergeRChBasalNoActTest.py`, `13.InterpolationRChTest.py` | composite day and guide curve |
+| 14 | `14.SimulationBolusCHOPy-mgipsimTest.py` | flattening: the recommended basal profile |
+| 15 | `15.GeneratorFileToPy-mgipsimTest.py` | writes the recommended profile into the simulator settings |
+| — | `S.BuildMealScenarios.py` | writes the four meal scenarios (two days, before and after) |
 
 - Step 14 sizes a correction for each hour from the deviation of the guide
   curve, assuming it is delivered 2 h before the deviation, and places it there
