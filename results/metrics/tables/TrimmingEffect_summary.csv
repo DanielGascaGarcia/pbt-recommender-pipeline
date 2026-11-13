@@ -1,0 +1,2 @@
+participants,hours,trimmed_hours,mean_abs_diff_trimmed,median_abs_diff_trimmed,mean_abs_diff_kept,median_abs_diff_kept,trimmed_larger,trimmed_smaller,trimmed_sign_changed
+17,379,112,1.2982,0.8038,0.0291,0.0255,13,99,38

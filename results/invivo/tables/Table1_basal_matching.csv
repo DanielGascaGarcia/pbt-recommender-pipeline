@@ -1,0 +1,18 @@
+ID,Regime,Basal_U_day,Mean_U_day,SD_U_day,Days,Partial_days,Bolus_U_day,Bolus_mean_U_day,Bolus_days,Virtual_selected,Virtual_basal_U_h,Virtual_in_pairs,Agrees
+2301,R (pump),18.46,18.88,2.78,70,0,11.12,11.58,70,Patient_5,0.7708693834302222,Patient_5,True
+2304,R (pump),33.81,33.28,1.47,33,2,27.04,26.04,32,Patient_2,1.4543908266349637,Patient_2,True
+2307,R (pump),6.73,6.78,1.05,57,1,12.59,12.47,57,Patient_16,0.3890665228092637,Patient_16,True
+2308,R (pump),9.82,9.78,0.33,88,1,16.23,15.96,87,Patient_16,0.3890665228092637,Patient_16,True
+2309,R (pump),19.29,19.11,0.64,87,0,10.4,10.74,84,Patient_5,0.7708693834302222,Patient_5,True
+Mann01,R (pump),19.75,19.71,2.45,47,0,25.8,26.43,47,Patient_5,0.7708693834302222,Patient_5,True
+Mann02,R (pump),12.31,12.42,0.61,53,0,32.9,32.75,53,Patient_14,0.5149142240605702,Patient_14,True
+Mann03,R (pump),13.96,13.74,0.72,56,0,27.4,27.97,56,Patient_6,0.5872017431381126,Patient_6,True
+Mann04,R (pump),33.15,33.13,0.2,52,0,21.4,23.99,52,Patient_2,1.4543908266349637,Patient_2,True
+Mann05,R (pump),28.61,28.59,0.24,45,0,38.4,37.08,45,Patient_15,1.1869561015124273,Patient_15,True
+Mann06,R (pump),21.56,21.52,0.16,52,0,19.0,19.2,52,Patient_4,0.9253373921164862,Patient_4,True
+Mann07,R (pump),24.35,24.85,0.88,55,0,13.9,13.69,55,Patient_20,1.001885964603786,Patient_20,True
+Mann08,R (pump),20.59,20.43,1.1,48,0,25.95,27.37,48,Patient_4,0.9253373921164862,Patient_4,True
+Mann09,R (pump),27.8,27.24,1.25,57,0,83.6,81.5,57,Patient_19,1.1542701685785703,Patient_19,True
+Mann10,R (pump),8.85,8.72,0.3,56,0,16.12,16.64,56,Patient_16,0.3890665228092637,Patient_16,True
+Mann11,R (pump),30.84,29.6,4.85,52,3,22.8,22.72,47,Patient_13,1.259959782415518,Patient_13,True
+Mann12,R (pump),18.87,18.75,0.98,56,0,22.55,22.46,56,Patient_5,0.7708693834302222,Patient_5,True
