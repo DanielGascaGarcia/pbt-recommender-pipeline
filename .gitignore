@@ -7,7 +7,8 @@ ManchesterCSCoordinatedDiabetesStudy-*/
 processed/
 logs/
 demo_output/
-results*/
+results_*/
+results/*/figures/
 InSilico/simulations/
 __pycache__/
 *.pyc
