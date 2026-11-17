@@ -97,6 +97,8 @@ def save(name):
     plt.close('all');
 
 
+# Per-participant metrics of S.CollectScenarioResults.py, one row per
+# participant and day (ID read as text, so 2308 stays a label).
 m = pd.read_csv(path4 + "metrics_by_participant.csv", dtype={"ID": str});
 
 # Same axis limits on Day 1 and Day 2, so the two days can be compared directly.
@@ -119,12 +121,16 @@ for day in DAYS:
     f = path4 + f"hourly_mean_and_std_{ILLUSTRATIVE}_{day}.csv";
     if os.path.isfile(f):
         df = pd.read_csv(f);
+        # Relative bias of each hour: (after - before) / before x 100, from the
+        # hourly means. within: % of hours with |bias| <= 15%; lower: % of hours
+        # with a lower SD after.
         df["relative_bias"] = ((df["BG_2_mean"] - df["BG_1_mean"]) / df["BG_1_mean"] * 100).fillna(0);
         within = (df["relative_bias"].abs() <= 15).mean() * 100;
         lower = (df["BG_2_std"] < df["BG_1_std"]).mean() * 100;
 
         fig, axes = plt.subplots(1, 3, figsize=(14, 4.8));   # shown at the full text width
 
+        # (a) relative bias per hour, with the +/-15% band.
         ax = axes[0];
         ax.bar(df["hour"], df["relative_bias"], color=COLOURS[0], edgecolor='black');
         ax.axhline(15, color='red', linestyle='--', label='±15% threshold');
@@ -138,6 +144,7 @@ for day in DAYS:
         panel_label(ax, '(a)');
         figTitle("Relative bias (after vs before)", ax);
 
+        # (b) hourly SD before and after, mmol/L (right axis in mg/dL).
         ax = axes[1];
         ax.plot(df["hour"], df["BG_1_std"], marker='o', label='Before', color='tab:orange');
         ax.plot(df["hour"], df["BG_2_std"], marker='o', label='After', color='tab:green');
@@ -150,6 +157,7 @@ for day in DAYS:
         figTitle("Standard deviation by hour", ax);
         mgdl_axis(ax, "Hourly SD of blood glucose (mg/dL)");
 
+        # (c) the two percentages, and the mean bias in a box.
         ax = axes[2];
         bars = ax.bar(["Within ±15%", "Lower SD after"], [within, lower],
                       color=[COLOURS[0], COLOURS[2]], edgecolor='black', width=0.5);
@@ -175,6 +183,7 @@ for day in DAYS:
     # -----------------------------------------------------------#
     # Cohort figures of the day
     # -----------------------------------------------------------#
+    # Rows of this day, with the manuscript labels, sorted.
     d = m[m["Day"] == day].copy();
     if d.empty:
         print(f"Skipped cohort figures for {day}: no rows");
@@ -185,6 +194,7 @@ for day in DAYS:
     # SD before vs after -> Variability<day>.png
     plt.figure(figsize=(6.5, 6.5));   # shown at about 0.6 of the text width
     ax = plt.gca();
+    # One dot per participant; below the red identity line = lower SD after.
     ax.scatter(d["STD_1_mmolL"], d["STD_2_mmolL"], color=COLOURS[0], edgecolor='black', s=80, zorder=3);
     top = SD_TOP;
     ax.plot([0, top], [0, top], 'r--', label='Identity line (no change)');
@@ -201,6 +211,7 @@ for day in DAYS:
     # delta taMAE -> MeanDeviation<day>.png
     plt.figure(figsize=(12, 8));
     ax = plt.gca();
+    # One bar per participant; positive = closer to 6 mmol/L after.
     ax.bar(d["Label"], d["DeltaTaMAE_mmolL"], color=COLOURS[0], edgecolor='black', width=0.6);
     ax.axhline(linewidth=2, color='Black');
     plt.xticks(rotation=45, ha='right');
@@ -215,6 +226,7 @@ for day in DAYS:
     # Composite stability index -> CompositeStability<day>.png
     plt.figure(figsize=(12, 8));
     ax = plt.gca();
+    # One bar per participant; above the dashed line (I = 1) = more stable after.
     ax.bar(d["Label"], d["Composite_Index"], color=COLOURS[4], edgecolor='black', width=0.6);
     ax.axhline(1, color='Black', linestyle='--', linewidth=1.5, label='No change (I = 1)');
     plt.xticks(rotation=45, ha='right');

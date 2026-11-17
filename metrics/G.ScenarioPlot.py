@@ -46,10 +46,15 @@ matplotlib.rcParams.update({'font.size': 12})   # same figure format as papers 1
 
 import globals
 
+# SIMS: InSilico/simulations/ (scenario results brought in by
+# S.SyncSimulatorResults.py).
 SIMS = globals.sims_root()
 
 
 def load(base, day, label):
+    # One scenario (day, Before/After): simulated IG of the first 1,440 minutes,
+    # the meals (minute, grams) and the basal profile (start minutes, rates) of
+    # its settings.
     d = os.path.join(base, day, label)
     ig = pd.read_excel(os.path.join(d, "state_results.xlsx"), sheet_name="Patient_0")["IG (mmol/L)"].to_numpy()[:1440]
     s = json.load(open(os.path.join(d, "simulation_settings.json"), encoding="utf-8"))
@@ -60,10 +65,12 @@ def load(base, day, label):
 
 
 def plot(pid):
+    # Exactly one Simulation_* folder per participant.
     folders = glob.glob(os.path.join(SIMS, pid, "Simulation_*"))
     if len(folders) != 1:
         raise FileNotFoundError(f"expected one Simulation_* folder in {SIMS}/{pid}, found {len(folders)}")
     base = folders[0]
+    # Two columns (Day1, Day2); top row glucose, bottom row basal.
     fig, axes = plt.subplots(2, 2, figsize=(14, 8), sharex=True,
                              gridspec_kw={"height_ratios": [3, 1]})
     for col, day in enumerate(["Day1", "Day2"]):
@@ -71,12 +78,15 @@ def plot(pid):
         ax.axhspan(3.9, 10.0, color="green", alpha=0.08, label="Target range 3.9-10.0")
         print(f"{pid} {day}")
         for label, style in (("Before", "-"), ("After", "--")):
+            # Before solid, After dashed. TIR = % of minutes within 3.9-10.0 mmol/L.
             ig, meals, bt, bm = load(base, day, label)
             t = np.arange(len(ig)) / 60
             tir = 100 * np.mean((ig >= 3.9) & (ig <= 10.0))
             ax.plot(t, ig, style, lw=1.6, label=f"{label} (TIR {tir:.1f}%)")
+            # Basal as steps: each rate until the next start, the last until 24 h.
             axb.step(np.r_[np.array(bt) / 60, 24], np.r_[bm, bm[-1]], style, where="post", label=label)
             print(f"  {label:6} mean {ig.mean():.2f} mmol/L, SD {ig.std(ddof=1):.2f}, TIR {tir:.1f}%")
+        # Meal times as dotted lines, with their grams at the top.
         for m, g in meals:
             ax.axvline(m / 60, color="grey", lw=0.8, ls=":")
             ax.text(m / 60, ax.get_ylim()[1] * 0.97, f"{g:.0f} g", fontsize=10, ha="center", va="top")
@@ -90,6 +100,7 @@ def plot(pid):
     print("Saved:", os.path.abspath(out))
 
 
+# IDs given, or every participant.
 ids = sys.argv[1:] or sorted(d for d in os.listdir(SIMS) if os.path.isdir(os.path.join(SIMS, d)))
 for pid in ids:
     try:

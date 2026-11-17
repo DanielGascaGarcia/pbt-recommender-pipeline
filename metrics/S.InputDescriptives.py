@@ -64,12 +64,15 @@ def label(pid):
 # -----------------------------------------------------------#
 # Participants
 # -----------------------------------------------------------#
+# Participants from pairs.csv (comment lines skipped).
 with open(globals.PAIRS_FILE, newline="", encoding="utf-8") as f:
     lines = (l for l in f if l.strip() and not l.lstrip().startswith("#"))
     pids = [r["id"].strip() for r in csv.DictReader(lines)]
 
 rows, days_rows = [], []
 for pid in pids:
+    # Analysis days: the rule of globals.day_split, applied to the InVivo folder
+    # (day_split reads the folder of the module that calls it).
     proc = globals.invivo_dir(pid)
     dates = globals._dates(proc, f"UoMGlucose{pid}_")
     n_an = max(0, min(globals.MAX_ANALYSIS_DAYS, len(dates) - globals.RESERVED_DAYS))
@@ -79,6 +82,8 @@ for pid in pids:
         if not os.path.isfile(p):
             continue
         b = pd.read_csv(p)
+        # Coverage of the day: 5-minute slots with at least one reading (BGValue2,
+        # before the meal exclusion) out of 288, capped at 100%.
         has = pd.to_numeric(b["BGValue2"], errors="coerce").notna()
         k = b["Key"].astype(str).str.strip()
         minute = k.str[:2].astype(int) * 60 + k.str[3:5].astype(int)
@@ -86,6 +91,7 @@ for pid in pids:
         c = min(100.0, 100 * slots / SLOTS_PER_DAY)
         cov.append(c)
         days_rows.append({"ID": pid, "date": d, "coverage_pct": c})
+    # Per participant: days, mean / median / min / max coverage, days >= 70%.
     cov = pd.Series(cov, dtype=float)
     rows.append({"ID": pid, "Label": label(pid), "Analysis_days": len(cov),
                  "Coverage_mean_pct": cov.mean(), "Coverage_median_pct": cov.median(),
@@ -118,6 +124,8 @@ def f1(x, n=1):
     return f"{x:.{n}f}"
 
 
+# LaTeX table: one row per participant and a summary row (days mean (SD)
+# [range]; coverage mean (SD); mean % of days >= 70%).
 days = t["Analysis_days"]
 tex = [r"""% Data appendix of the chapter of paper 3: CGM coverage.
 % Written by metrics/S.InputDescriptives.py.

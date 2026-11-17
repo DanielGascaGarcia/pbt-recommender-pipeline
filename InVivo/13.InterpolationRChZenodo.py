@@ -62,12 +62,16 @@ id=globals.id;
 # id="adolescent#006";
 # id="child#010";
 # id="adult#001";
+# path2: processed/<id>/. Input: the joined table of step 12.
 path2= globals.fileToSave;
 fileToRead="ComparisonJoinedNoActivity"+str(id);
 # fileToRead="ComparisonJoinedPeakNoActivity"+str(id);
 fileToSave="SampleJoined"+str(id);
 data = pd.read_csv(str(path2)+str(fileToRead)+".csv");
 
+# Four days of minutes (1-4 Dec 2010; dates arbitrary): the hourly profile
+# is repeated four times, so the spline has neighbours on both sides of
+# midnight.
 dt = datetime.datetime(2010, 12, 1);
 end = datetime.datetime(2010, 12, 4, 23, 59, 59);
 step = datetime.timedelta(minutes=1);
@@ -76,6 +80,7 @@ step = datetime.timedelta(minutes=1);
 # -----------------------------------------------------------#
 #                           Sample
 # -----------------------------------------------------------#
+# factor: smoothing factor of the spline (0.1 = light smoothing).
 factor=0.1
 Sample=pd.DataFrame();   
 medTime=[];
@@ -86,6 +91,8 @@ medFlag=[];
 i=0;
 j=0;
 # One node per hour at minute :59, over 4 repeated days (96 samples).
+# j = minute of the day (back to 0 every 1,440): the node of each hour is at
+# j % 60 == 59. i = minute over the four days: the x of the node.
 while dt < end:
        if j==1440:
           j=0;   
@@ -101,6 +108,8 @@ while dt < end:
 # -----------------------------------------------------------#
 #                          Missings
 # -----------------------------------------------------------#
+# Sample: one row per node: time, median change of its hour (FRcH) and its
+# flag. (The two fillna lines return a copy and change nothing.)
 Sample['Key']=medTime;
 Sample['FRcH']=medValue;
 Sample['FRcH'].fillna('');
@@ -111,6 +120,8 @@ Sample['medFlag'].fillna('');
 # -----------------------------------------------------------#
 
 # Green hours (Flag 3) are never trimmed; only the other hours are checked.
+# SampleL: the nodes of the hours that are not green (flag 1 or 2). If there
+# are any, the trimming is applied to them; otherwise Sample_ = Sample.
 SampleL = pd.DataFrame(Sample)
 Sample_=SampleL
 condition = SampleL['medFlag'] ==3;
@@ -121,12 +132,16 @@ if len(SampleL)>0:
        #                    Interquartile trimming of the non-green hours
        # -----------------------------------------------------------#
 
+       # 25th, 50th and 75th percentiles of the median change over those nodes,
+       # ignoring empty hours (the pandas version is computed but not used).
        percentiles = SampleL['FRcH'].quantile([0.25, 0.5, 0.75])
        percentiles_np = np.nanpercentile(SampleL['FRcH'], [25, 50, 75])
        print(percentiles_np[2])   # 75th percentile
        # -----------------------------------------------------------#
        #                    Filter values and eliminate duplicates
        # -----------------------------------------------------------#
+       # Keep only the nodes within P25-P75 and drop repeated rows (each hour
+       # appears once per repeated day).
        condition = SampleL['FRcH']<percentiles_np[0];
        SampleL = SampleL[~condition]
        condition = SampleL['FRcH']>percentiles_np[2];
@@ -137,6 +152,7 @@ if len(SampleL)>0:
        # #                     Merge interpolation
        # # -----------------------------------------------------------#
        Merge=pd.DataFrame(); 
+       # Join the kept nodes back by time: _x = every node, _y = the kept ones.
        Sample['Key']=Sample['Key'].str.strip();
        SampleL['Key']=SampleL['Key'].str.strip();
        Sample_= pd.merge(Sample,SampleL,on='Key',how='left');
@@ -147,6 +163,9 @@ if len(SampleL)>0:
        # # # -----------------------------------------------------------#
 
        # Define the condition for replacement
+       # Every non-green node is emptied, then refilled with its own value only if
+       # it was kept (within P25-P75). Trimmed nodes stay empty and are
+       # interpolated below. Green nodes are never touched.
        condition_ = Sample_['medFlag_x']<3 
        # Replace values in column 'B' where the condition is True
        Sample_.loc[condition_, 'FRcH_x'] = np.nan
@@ -157,6 +176,7 @@ if len(SampleL)>0:
        # Replace values in column 'B' where the condition is True
        Sample_.loc[condition__, 'FRcH_x'] = Sample_.loc[condition__, 'FRcH_y']
 
+       # Back to the column names FRcH and medFlag.
        Sample_.drop('medFlag_y', axis=1, inplace=True)
        Sample_.drop('FRcH_y', axis=1, inplace=True)
        Sample_.rename(columns={'medFlag_x': 'medFlag', 'FRcH_x': 'FRcH'}, inplace=True)
@@ -168,6 +188,7 @@ Interpolation=[];
 Key=[];
 RChToBeInt=[];
 Interpolationdf=pd.DataFrame(); 
+# Node values, with NaN at the trimmed hours.
 RChToBeInt=Sample_['FRcH'].to_numpy();
 
 # -----------------------------------------------------------#
@@ -185,12 +206,14 @@ non_missing_indices = ~missing_indices
 indices = np.arange(len(RChToBeInt))
 
 # Interpolate missing values
+# Fill each empty node linearly between its neighbouring nodes.
 RChToBeInt[missing_indices] = np.interp(indices[missing_indices], indices[non_missing_indices], RChToBeInt[non_missing_indices])
 
 # -----------------------------------------------------------#
 #                     Spline interpolation
 # -----------------------------------------------------------#
 
+# 5,760 points: four days, about one per minute.
 xvals = np.linspace(0, 5760, 5760);
 
 # Light smoothing spline over the 4 days; the second day is kept (rows 1439-2878).
@@ -204,6 +227,9 @@ Interpolationdf['BGRChInt']=Y_[1439:2879];
 # # -----------------------------------------------------------#
 # #                     Merge interpolation
 # # -----------------------------------------------------------#
+# Add BGRChInt to the table of step 12 and save it as SampleJoined<id>.csv:
+# the reconstructed curve used to build the simulator input and by the
+# agreement checks (G.CurveCheck, S.CurveAgreement).
 Interpolationdf['Key']=Interpolationdf['Key'].str.strip();
 output = pd.merge(data,Interpolationdf,on='Key',how='left');
 # # -----------------------------------------------------------#

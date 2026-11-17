@@ -1,19 +1,46 @@
+# .gitignore: what Git does not upload to the repository.
+# A line ending in / ignores that folder wherever it appears; * matches any text.
+# Comments must be on their own line: Git reads a "#" after a pattern as part of it.
+
+# ------------------------------------------------------------------ #
 # Data (fetched by S.GetZenodoData.py or provided on request; not versioned)
+# ------------------------------------------------------------------ #
+# Input files of every participant, built by the data module
 raw/
+# Downloads of the Zenodo record
 data_cache/
+# Unzipped T1D-UOM dataset
 ManchesterCSCoordinatedDiabetesStudy-*/
 
+# ------------------------------------------------------------------ #
 # Regenerated on every run
+# ------------------------------------------------------------------ #
+# Intermediate files of InVivo and InSilico
 processed/
+# Screen output of each run
 logs/
+# Everything the demo writes
 demo_output/
+# Copies kept to compare two runs (results_before/, ...)
 results_*/
+# Figures are rebuilt by the code and not uploaded;
+# the tables in results/<module>/tables/ ARE uploaded
 results/*/figures/
+# Working copy of the simulations, rebuilt from simulator_runs/
 InSilico/simulations/
+# Python bytecode cache
 __pycache__/
 *.pyc
 
+# ------------------------------------------------------------------ #
 # Local material, not part of the package
+# ------------------------------------------------------------------ #
+# Earlier versions of the scripts
 Old/
+# Clinical exports: available on request only, never uploaded
 Sleep XT files/
+# Old copy of this file without the dot
 gitignore
+
+# Simulator, cloned separately (see README)
+py-mgipsim/

@@ -49,6 +49,7 @@ import globals
 # Parameters
 
 
+# filesBG: the working copies written by step 4.
 filesBG=[];
 # -----------------------------------------------------------#
 # Configuration
@@ -57,6 +58,7 @@ filesBG=[];
 id=globals.id;
 
 # --- Folder paths ---
+# Input and output folder: processed/<id>/.
 filetoread = globals.fileToSave
 PathToSave= globals.fileToSave
 fileToSave="BGwNMLeftJoined"+str(id)+".csv";
@@ -84,12 +86,17 @@ filesBG = [f for f in filesBG if re.search(r'_(\d{8})', f).group(1) in keep]
 # Left join: the 1,440 minutes are kept; minutes without a reading stay NaN.
 if len(filesBG)>=2:
     # reading two csv files
+    # data1: the minute grid of step 3.
+    # data2: the first analysis day, its BGValue renamed BGValue0 (meal windows
+    # already NaN).
     data1 = pd.read_csv(str(filetoread)+'PivotBG_wCN'+'.csv')
     data2 = pd.read_csv(str(filetoread)+filesBG[0],usecols = ['Key','BGValue']);
     data2.rename(columns = {'BGValue':'BGValue'+str(0)}, inplace = True);
+    # Remove spaces around Key so the times match.
     data1['Key']=data1['Key'].str.strip();
     data2['Key']=data2['Key'].str.strip();
     output1 = pd.merge(data1,data2,suffixes=('',''),on='Key',how='left');
+    # The other days, one column each: BGValue1, BGValue2, ...
     for j in range(len(filesBG)-1):
             data3 = pd.read_csv(str(filetoread)+filesBG[j+1],usecols = ['Key','BGValue']);
             data3.rename(columns = {'BGValue':'BGValue'+str(j+1)}, inplace = True);

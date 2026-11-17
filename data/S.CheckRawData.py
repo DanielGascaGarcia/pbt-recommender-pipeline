@@ -52,6 +52,7 @@ import globals
 # -----------------------------------------------------------#
 # Configuration
 # -----------------------------------------------------------#
+# RAW: the raw/ folder. FILES: value column and upper limit of each file type.
 RAW = os.path.dirname(globals.raw_dir("x").rstrip("/"))
 FILES = {  # kind: (value column, upper limit)
     "Glucose": ("value", 22.2),
@@ -66,33 +67,41 @@ LOW_GLUCOSE = 2.2
 # -----------------------------------------------------------#
 rows = []
 for pid in sorted(d for d in os.listdir(RAW) if os.path.isdir(os.path.join(RAW, d))):
+    # Each participant folder in raw/, each of the four files.
     for kind, (vcol, upper) in FILES.items():
         f = os.path.join(RAW, pid, f"UoM{kind}{pid}.csv")
         if not os.path.isfile(f):
             rows.append({"ID": pid, "file": kind, "problem": "file missing"})
             continue
         d = pd.read_csv(f, dtype=str)
+        # Clean the column names; drop blank rows.
         d.columns = [c.strip() for c in d.columns]
         d = d[d.apply(lambda s: s.fillna("").str.strip() != "").any(axis=1)]   # blank rows
+        # Time column: the one ending in _ts.
         tcol = next((c for c in d.columns if c.endswith("_ts")), None)
         if tcol is None or vcol not in d.columns:
             rows.append({"ID": pid, "file": kind, "rows": len(d),
                          "problem": f"columns not recognised: {list(d.columns)}"})
             continue
+        # Time stamps and values; anything unreadable becomes NaT / NaN.
         ts = pd.to_datetime(d[tcol].str.strip(), format="%d/%m/%Y %H:%M", errors="coerce")
         v = pd.to_numeric(d[vcol], errors="coerce")
+        # Out of range: above the upper limit, or (glucose) below 2.2 mmol/L.
         out = (v > upper) | ((v < LOW_GLUCOSE) if kind == "Glucose" else False)
         r = {"ID": pid, "file": kind, "rows": len(d),
              "bad_ts": int(ts.isna().sum()),
              "bad_value": int(v.isna().sum()),
              "duplicates": int(ts.dropna().duplicated().sum()),
+             # unordered: a time stamp earlier than the one in the row before.
              "unordered": int((ts.diff().dt.total_seconds() < 0).sum()),
              "negative": int((v < 0).sum()),
              "out_of_range": int(out.sum()),
              "first": ts.min().date() if ts.notna().any() else None,
              "last": ts.max().date() if ts.notna().any() else None}
+        # Glucose: usual interval between readings (median, minutes).
         if kind == "Glucose" and ts.notna().sum() > 1:
             r["step_min"] = ts.dropna().sort_values().diff().dt.total_seconds().median() / 60
+        # The checks with a count above 0, listed in 'problem'.
         flags = [k for k in ("bad_ts", "bad_value", "duplicates", "unordered", "negative", "out_of_range") if r[k]]
         r["problem"] = ", ".join(flags) if flags else ""
         rows.append(r)
@@ -100,6 +109,7 @@ for pid in sorted(d for d in os.listdir(RAW) if os.path.isdir(os.path.join(RAW, 
 # -----------------------------------------------------------#
 # Saving and summary
 # -----------------------------------------------------------#
+# Save the table and list the files with something to look at.
 t = pd.DataFrame(rows)
 t.to_csv(os.path.join(globals.path4, "RawDataCheck.csv"), index=False)
 pd.set_option("display.width", 200)

@@ -45,6 +45,7 @@ matplotlib.rcParams.update({'font.size': 18})
 import globals
 id=globals.id;
 
+# path2: processed/<id>/.
 path2= globals.fileToSave;
 fileToRead="BGHourRelativeChange"+str(id);
 fileToSave="Boxplot"+str(id);
@@ -56,6 +57,8 @@ fileToSave="Boxplot"+str(id);
 # -----------------------------------------------------------#
 # One row per analysis day: column count of the relative-change file minus Key.
 total = pd.DataFrame(index=range(len(pd.read_csv(str(path2)+str(fileToRead)+str(0)+str("To")+str(1)+".csv").columns)-1));
+# Columns 'i-i+1' added from the last hour backwards (for the figure, so
+# 00-01 ends at the top).
 for i in reversed(range(24)):
     data = pd.read_csv(str(path2)+str(fileToRead)+str(i)+str("To")+str(i+1)+"lastValues"+".csv");
     data.rename(columns = {'Last_values':str(i)+str("-")+str(i+1)}, inplace = True);
@@ -63,6 +66,8 @@ for i in reversed(range(24)):
 # -----------------------------------------------------------#
 # Saving in the correct order
 # -----------------------------------------------------------#
+# total1: the same values, columns '[i-i+1]' in order 0-24. This is the
+# table saved and read by step 10.
 total1 = pd.DataFrame(index=range(len(pd.read_csv(str(path2)+str(fileToRead)+str(0)+str("To")+str(1)+".csv").columns)-1));
 for i in range(24):
     data = pd.read_csv(str(path2)+str(fileToRead)+str(i)+str("To")+str(i+1)+"lastValues"+".csv");
@@ -77,6 +82,8 @@ total1.to_csv(str(path2)+str(fileToSave)+str(0)+str("-")+str(24)+"total"+".csv",
 # -----------------------------------------------------------#
 # Figure (not saved to file)
 # -----------------------------------------------------------#
+# Horizontal boxplot of the 24 hours. The band is drawn at +/- 2 x 18.0182
+# (+/- 36), while the values are in mmol/L (see the Notes).
 plt.grid();
 pd.DataFrame.boxplot(total, vert = False);
 # -----------------------------------------------------------#

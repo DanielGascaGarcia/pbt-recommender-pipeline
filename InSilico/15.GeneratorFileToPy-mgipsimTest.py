@@ -51,6 +51,7 @@ print(id)
 id2=globals.id2;
 print(id2)
 
+# pathRead: processed/<id>/ of the participant.
 pathRead=globals.fileToSave
 # Same Simulation_<id2> folder that 0.GeneratorExamplesPy-mgipsimForEGPtest.py reads.
 pathWrite=globals.sim_dir(id2, id).rstrip('/');
@@ -58,6 +59,8 @@ fileToRead="SampledAdvised"+str(id2)+"_"+"final"+".csv";
 num_days = 1  # Number of simulation days
 
 
+# Only Key and the recommended rate (U/h) are needed. (The line after
+# read_csv leaves the column as it is.)
 columns_to_read = ['Key', 'AdjustedRecIns']
 data = pd.read_csv(os.path.join(pathRead, fileToRead), usecols=columns_to_read)
 data['AdjustedRecIns'] = data['AdjustedRecIns'] 
@@ -83,6 +86,8 @@ with open(json_file_name, 'r') as json_file:
 # -----------------------------------------------------------#
 # Build single-day basal profile
 # -----------------------------------------------------------#
+# Per-minute rate -> steps: walk the rows; whenever the rate changes, close
+# the current step (its rate and its start minute) and open a new one.
 magnitudes = []
 start_times = []
 
@@ -100,6 +105,7 @@ for i in range(1, len(data)):
         current_start_time = data.iloc[i]["Key"]
 
 # Handle final entry
+# Close the last step.
 hh, mm, ss = map(int, current_start_time.split(":"))
 total_minutes = hh * 60 + mm + ss / 60.0
 magnitudes.append(current_rate)
@@ -108,6 +114,8 @@ start_times.append(total_minutes)
 # -----------------------------------------------------------#
 # Repeat for multiple days
 # -----------------------------------------------------------#
+# One copy of the steps per simulated day, shifted by 1,440 minutes
+# (num_days = 1, so one copy).
 repeated_magnitudes = []
 repeated_start_times = []
 
@@ -119,6 +127,7 @@ for day in range(num_days):
 # -----------------------------------------------------------#
 # Update JSON and save
 # -----------------------------------------------------------#
+# Write the profile as Py-mgipsim expects it: one inner list per patient.
 existing_data["inputs"]["basal_insulin"]["magnitude"] = [repeated_magnitudes]
 existing_data["inputs"]["basal_insulin"]["start_time"] = [repeated_start_times]
 

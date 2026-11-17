@@ -33,15 +33,19 @@ import shutil
 
 import globals
 
+# SRC: InSilico/simulations/ (the earlier layout); DEST: simulator_runs/.
 SRC, DEST = globals.sims_root(), globals.simulator_runs_root()
 for pid in sorted(os.listdir(SRC)):
     for sim in sorted(os.listdir(os.path.join(SRC, pid))):
         s, d = os.path.join(SRC, pid, sim), os.path.join(DEST, pid, sim)
         if not os.path.isdir(s):
             continue
+        # Never overwrite what is already in simulator_runs/.
         if os.path.exists(d):
             print(f"{pid}: {os.path.relpath(d, globals.ROOT)} exists; left as it is")
             continue
+        # Basal-only run: the _original settings (the profile that was simulated),
+        # saved as simulation_settings.json, plus state_results.xlsx.
         start = os.path.join(s, "simulation_settings_original.json")
         if not os.path.isfile(start):
             start = os.path.join(s, "simulation_settings.json")
@@ -50,6 +54,7 @@ for pid in sorted(os.listdir(SRC)):
         if os.path.isfile(os.path.join(s, "state_results.xlsx")):
             shutil.copy2(os.path.join(s, "state_results.xlsx"), d)
         n = 0
+        # Each scenario folder, with its settings and results.
         for day in ("Day1", "Day2"):
             for arm in ("Before", "After"):
                 a = os.path.join(s, day, arm)

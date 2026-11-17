@@ -30,6 +30,7 @@ Notes
       forward and backward fill unless a whole column is empty).
 """
 
+# Imports repeated from the original; harmless.
 import pandas as pd
 import pandas as pd
 import numpy as np
@@ -48,12 +49,14 @@ fileToRead = f'BasalLeftJoined{id}.csv'
 fileToSave = f'BasalImputed{id}.csv'
 
 # ---- Load & clean ----
+# index_col=0: Key becomes the index; the day columns remain.
 data = pd.read_csv(path2 + fileToRead, index_col=0)
 # Each programmed rate holds until the next one (ffill); bfill covers the first minutes.
 df = data.replace('', np.nan).ffill().bfill()
 
 # ---- Smoothed mode function ----
 def smart_mode(row, rounding_precision=3, min_freq_ratio=0.8):
+    # Rates of this minute across the days, as numbers, without empty values.
     values = row.dropna().astype(float).values
     if len(values) == 0:
         return np.nan
@@ -76,8 +79,11 @@ def smart_mode(row, rounding_precision=3, min_freq_ratio=0.8):
     return candidates.index.max()
 
 # ---- Apply logic ----
+# One value per minute: ModeBasalValue, the representative programmed rate
+# (U/h).
 df["ModeBasalValue"] = df.apply(smart_mode, axis=1)
 
 # ---- Save result ----
+# Saved with the index, so Key is again the first column.
 df.to_csv(path2 + fileToSave)
 print(f"✔ Saved final file to:\n{path2 + fileToSave}")

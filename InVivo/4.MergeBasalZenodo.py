@@ -40,6 +40,7 @@ import globals
 # -----------------------------------------------------------#
 
 
+# Imports repeated from the original (os, pandas); harmless.
 import os
 import pandas as pd
 import re
@@ -49,6 +50,8 @@ from datetime import datetime
 id = globals.id
 
 # Construct paths
+# base_path: processed/<id>/. Daily basal files UoMBasal<id>_<date>.csv;
+# output BasalLeftJoined<id>.csv.
 base_path = globals.fileToSave;
 pivot_file = os.path.join(base_path, 'Pivot_wCN.csv')
 file_pattern = f"UoMBasal{id}_"
@@ -56,6 +59,7 @@ output_file = f"BasalLeftJoined{id}.csv"
 
 # 1) Load the pivot dataframe
 pivot_df = pd.read_csv(pivot_file)
+# Remove spaces around Key so the times match exactly.
 pivot_df['Key'] = pivot_df['Key'].astype(str).str.strip()
 
 # 2) Find and sort basal files by date
@@ -66,6 +70,7 @@ basal_files = [
 ]
 
 # Extract date from filename and sort
+# Date of a file from its name; a file without one goes last.
 def extract_date(fname):
     match = re.search(rf'{file_pattern}(\d{{8}})', fname)
     if match:
@@ -73,6 +78,7 @@ def extract_date(fname):
     return datetime.max  # Push unparseable names to the end
 
 # Sort by date and select first 45
+# Own rule, not globals.day_split (see the Notes of the header).
 basal_files = sorted(basal_files, key=extract_date)[:45]
 print("Selected basal files:", basal_files)
 
@@ -82,6 +88,8 @@ else:
     # 3) Start from a copy of the pivot
     merged_df = pivot_df.copy()
 
+    # One column per day: basal_dose_0, basal_dose_1, ... joined on Key; the
+    # minutes without a programmed change stay empty (filled in step 5).
     for i, fname in enumerate(basal_files):
         full_path = os.path.join(base_path, fname)
         df = pd.read_csv(full_path)

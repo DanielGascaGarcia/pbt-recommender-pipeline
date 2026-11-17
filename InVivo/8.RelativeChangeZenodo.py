@@ -40,10 +40,13 @@ import datetime
 from matplotlib import pyplot as plt
 import numpy as np
 import csv
+# Silence the pandas warning about writing into a slice (dt is built from
+# data[['Key']]).
 pd.options.mode.chained_assignment = None  # default='warn'
 import globals
 id=globals.id;
 
+# path2: processed/<id>/.
 path2= globals.fileToSave;
 fileToRead="BGHourInterpolated"+str(id);
 fileToSave="BGHourRelativeChange"+str(id);
@@ -51,6 +54,9 @@ fileToSave="BGHourRelativeChange"+str(id);
 #             Substract the staring point
 # -----------------------------------------------------------#
 
+# Part 1: change within each hour. For each hour file and each day column
+# BGValue<j>, subtract the first valid reading of that hour, so every hour
+# starts at 0. Result: RChBGValue<j>, in mmol/L.
 # len(columns) - 2: the hourly files carry the saved index and Key.
 dmean = pd.DataFrame();
 for i in range(24):
@@ -62,6 +68,8 @@ for i in range(24):
     #    dt1=data['BGValue'+str(j)].diff().to_frame(name='DBGValue'+str(j));
         # serie = data['BGValue'+str(j)].to_frame(name='RChBGValue'+str(j)).div(18.0182).squeeze();
         serie = data['BGValue'+str(j)].to_frame(name='RChBGValue'+str(j)).squeeze();
+        # If the day has no reading in this hour (first_valid_index is None), the
+        # subtraction fails and the column is kept as it is (empty).
         try:
             first_val=serie.loc[serie.first_valid_index()];
             dt1=data['BGValue'+str(j)].to_frame(name='RChBGValue'+str(j))-first_val;
@@ -78,12 +86,14 @@ for i in range(24):
 #             Obtaining the last point.
 # -----------------------------------------------------------#
 
+# Part 2: the net change of each hour, one value per day.
 # Last valid value of each day = change within the hour; ' ' if the day has no reading.
 for i in range(24):
     data = pd.read_csv(str(path2)+str(fileToSave)+str(i)+str("To")+str(i+1)+".csv"); 
     # print(data)
     dt=[];
     #2 for Ohio Dataset, 1 for Simglucose
+    # len(columns) - 1: Key plus one RChBGValue column per day.
     for j in range(len(data.columns)-1):
         # print(j)
         try:
@@ -95,6 +105,7 @@ for i in range(24):
             # print("No key");
             dt1=" ";
         dt.append(dt1); 
+    # Saved as ...lastValues.csv: one row per day.
     dt=pd.DataFrame(dt, columns=['Last_values'])  
     dt.to_csv(str(path2)+str(fileToSave)+str(i)+str("To")+str(i+1)+"lastValues"+".csv",index=False);
     print(dt);

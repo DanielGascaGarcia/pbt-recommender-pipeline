@@ -43,13 +43,16 @@ import pandas as pd
 
 import globals
 
+# T: tables folder; F: figures folder (results/metrics/).
 T, F = globals.path4, globals.path3
 os.makedirs(F, exist_ok=True)
 h = pd.read_csv(os.path.join(T, "TrimmingEffect_by_hour.csv"), dtype={"ID": str})
+# keep / trim: the kept and the trimmed participant-hours.
 keep, trim = h[~h.trimmed], h[h.trimmed]
 
 # ---- cohort
 fig, ax = plt.subplots(figsize=(7, 7))
+# Symmetric axis limits from the largest absolute value, with a 5% margin.
 lim = np.nanmax(np.abs(h[["original", "guide"]].to_numpy())) * 1.05
 ax.plot([-lim, lim], [-lim, lim], color="grey", lw=1, ls="--", label="No change")
 ax.axhline(linewidth=1, color="Black"); ax.axvline(0, linewidth=1, color="Black")
@@ -60,6 +63,7 @@ ax.scatter(trim.original, trim.guide, s=40, color="tab:red", marker="x",
 ax.set_xlim(-lim, lim); ax.set_ylim(-lim, lim); ax.set_aspect("equal")
 ax.set_xlabel("Original hourly median relative change (mmol/L per hour)")
 ax.set_ylabel("Value in the guide after trimming and interpolation (mmol/L per hour)")
+# How many trimmed hours became smaller in magnitude (shown in the title).
 smaller = int((trim.magnitude == "smaller").sum())
 ax.set_title(f"Trimmed hours smaller in magnitude: {smaller} of {len(trim)} "
              f"({100 * smaller / max(len(trim), 1):.0f}%)", fontsize=11)
@@ -71,6 +75,7 @@ print("Saved:", os.path.abspath(os.path.join(F, "TrimmingEffect_cohort.png")))
 # ---- per participant
 ids = sys.argv[1:] or sorted(h.ID.unique())
 for pid in ids:
+    # One participant: bars = original value (red if trimmed), line = guide.
     d = h[h.ID == pid].sort_values("hour")
     if d.empty:
         print(f"[{pid}] not in TrimmingEffect_by_hour.csv; skipped")

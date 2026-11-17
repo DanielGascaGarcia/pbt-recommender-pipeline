@@ -34,20 +34,26 @@ import globals
 
 
 # --- Configurable global variable ---
+# id: participant; the grid is written to its processed/<id>/.
 id = globals.id;
 
+# One day at 1-minute steps (date arbitrary).
 dt = datetime.datetime(2010, 12, 1);
 end = datetime.datetime(2010, 12, 1, 23, 59, 59);
 step = datetime.timedelta(minutes=1);
 PathToSave = globals.fileToSave;
 secArray=[];
 # -----------------------------------------------------------#
+# Create (or empty) PivotBG.csv before appending to it.
 open(str(PathToSave)+"PivotBG"+".csv", 'w').close();
+# secArray: the 1,440 times 00:00:00 ... 23:59:00, as text.
 while dt < end:
         secArray.append(dt.strftime('%H:%M:%S'));
         dt += step;
+# Prints 1440, as a check.
 print(len(secArray));
 # -----------------------------------------------------------#
+# One time per line (no header).
 for j in secArray:
         file = open(str(PathToSave)+"PivotBG"+".csv", 'a');
         file.write(str(j));
@@ -55,6 +61,8 @@ for j in secArray:
         file.write('\n');
         file.close();
 # -----------------------------------------------------------#
+# Read back, name the column Key, save as PivotBG_wCN.csv: the grid that
+# 5.MergeBGCleanZenodo.py joins the glucose onto.
 df = pd.read_csv(str(PathToSave)+"PivotBG"+".csv",  header=None);
 df.rename(columns={0: 'Key'}, inplace=True);
 df.to_csv(str(PathToSave)+"PivotBG"+"_wCN"+".csv", index=False); # save to new csv

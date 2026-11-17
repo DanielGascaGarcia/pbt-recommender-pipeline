@@ -47,6 +47,8 @@ import shutil
 import subprocess
 import sys
 
+# HERE: the InSilico folder (every step runs from it); logs go to
+# InSilico/logs/.
 HERE = os.path.dirname(os.path.abspath(__file__))
 LOG_DIR = os.path.join(HERE, "logs")
 
@@ -55,6 +57,8 @@ LOG_DIR = os.path.join(HERE, "logs")
 import globals
 PAIRS_FILE = globals.PAIRS_FILE if os.path.isfile(globals.PAIRS_FILE) else None
 
+# Steps in order. The numbers follow the InVivo steps; the missing ones
+# (1, 2, 4, 11) are InVivo steps not needed in silico.
 SCRIPTS = [
     "0.GeneratorExamplesPy-mgipsimForEGPtest.py",
     "3.PivotGeneratorZenodo.py",
@@ -80,6 +84,8 @@ def load_pairs():
     if PAIRS_FILE is None:
         sys.exit("pairs.csv not found in the project root.")
     with open(PAIRS_FILE, newline="", encoding="utf-8") as f:
+        # Lines starting with # are comments; the rest is read as a CSV with the
+        # header id,id2,source.
         rows = (line for line in f if line.strip() and not line.lstrip().startswith("#"))
         return [(r["id"].strip(), r["id2"].strip()) for r in csv.DictReader(rows)]
 
@@ -106,6 +112,8 @@ def run_pair(pid, vid, log_path):
     # starting profile kept by step 15, read by step 0
     shutil.copy2(os.path.join(src, "simulation_settings.json"),
                  os.path.join(dest, "simulation_settings_original.json"))
+    # Environment of every step: the pair (read by globals.py), the Agg backend
+    # and UTF-8 output.
     env = os.environ.copy()
     env["PATIENT_ID"] = pid
     env["VIRTUAL_ID"] = vid
@@ -113,6 +121,8 @@ def run_pair(pid, vid, log_path):
     env["PYTHONIOENCODING"] = "utf-8"
     with open(log_path, "w", encoding="utf-8") as log:
         log.write(f"Interpreter: {sys.executable}\nPair: {pid} -> {vid}\n\n")
+        # The output of each step goes to the participant's log; the first failure
+        # stops this participant.
         for script in SCRIPTS:
             log.write(f"===== {script} =====\n")
             log.flush()
@@ -123,6 +133,8 @@ def run_pair(pid, vid, log_path):
     return "ok"
 
 
+# Main part: check the scripts, read the pairs (only the IDs given, if any),
+# run each pair, write the summary; exit code 1 if any participant failed.
 print(f"Interpreter: {sys.executable}")
 missing = [s for s in SCRIPTS if not os.path.isfile(os.path.join(HERE, s))]
 if missing:
@@ -138,6 +150,8 @@ if not pairs:
 os.makedirs(LOG_DIR, exist_ok=True)
 stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 summary = []
+# Each participant is independent: a failure is recorded and the next one
+# is run.
 for pid, vid in pairs:
     print(f"\n--- {pid} -> {vid} ---")
     status = run_pair(pid, vid, os.path.join(LOG_DIR, f"{stamp}_insilico_{pid}.log"))

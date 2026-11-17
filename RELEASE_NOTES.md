@@ -65,8 +65,8 @@ is produced from the original data exports by the code.
   Man02, Man09, Man10) after the reference curve was corrected. The input of
   Man07, which met the criterion with the largest difference in
   high‑reliability hours (0.87 mmol/L), was then refined further (0.45 mmol/L;
-  r 0.68); the manuscript reports its results with both inputs. The 68
-  scenarios were simulated again with the final inputs.
+  r 0.68); the results use the refined input. The 68 scenarios were
+  simulated again with the final inputs.
 
 - Table 1: the daily basal and bolus of every participant are computed by
   `S.BasalMatching.py` (median of the daily totals), which now also reports
@@ -95,9 +95,9 @@ is produced from the original data exports by the code.
   Shapiro–Wilk, Wilcoxon and Bonferroni checks.
 - `metrics/G.TrimmedHoursCheck.py`: checks that the trimmed hours match those
   of the guide construction.
-- `metrics/S.InputDescriptives.py`: CGM coverage and glucose of the analysis
-  days per participant, for the data appendix of the thesis chapter, also as
-  LaTeX tables.
+- `metrics/S.InputDescriptives.py`: CGM coverage of the analysis days per
+  participant, for the data appendix of the thesis chapter, also as a LaTeX
+  table.
 - Figure 1 of the manuscript: `InVivo/12.MergeRChBasalNoActZenodo.py` now saves
   the figure of the illustrative participant (`ILLUSTRATIVE_ID`, 2308) to
   `results/invivo/figures/`; it was previously only shown on screen.

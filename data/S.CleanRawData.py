@@ -60,6 +60,7 @@ import globals
 # -----------------------------------------------------------#
 # Configuration
 # -----------------------------------------------------------#
+# RAW: the raw/ folder (raw_dir('x') without its last part).
 RAW = os.path.dirname(globals.raw_dir("x").rstrip("/"))
 KINDS = ["Glucose", "Nutrition", "Bolus", "Basal"]
 REPEAT_MINUTES = 15
@@ -71,11 +72,15 @@ REPEAT_MINUTES = 15
 def repeated_boluses(d):
     """Index of the bolus records that repeat the previous bolus (same dose,
     within REPEAT_MINUTES), pairing records in time order."""
+    # Time stamp and dose of each record; records are visited in time order
+    # (stable sort keeps the file order for equal times; unreadable times are
+    # left out).
     ts = pd.to_datetime(d["bolus_ts"].str.strip(), format="%d/%m/%Y %H:%M", errors="coerce")
     dose = pd.to_numeric(d["bolus_dose"], errors="coerce")
     order = ts.dropna().sort_values(kind="stable").index
     drop, prev = [], None
     for i in order:
+        # Same dose as the previous record and within REPEAT_MINUTES: repeated.
         if (prev is not None and dose[i] == dose[prev]
                 and (ts[i] - ts[prev]).total_seconds() <= REPEAT_MINUTES * 60):
             drop.append(i)
@@ -93,12 +98,15 @@ def md5(path):
 # Main
 # -----------------------------------------------------------#
 summary = []
+# Each participant folder in raw/.
 for pid in sorted(d for d in os.listdir(RAW) if os.path.isdir(os.path.join(RAW, d))):
     folder = os.path.join(RAW, pid)
+    # original/: the untouched files, the checksums and the log.
     keep_dir = os.path.join(folder, "original")
     os.makedirs(keep_dir, exist_ok=True)
     log = []
     stamp_file = os.path.join(keep_dir, "cleaned_md5.json")
+    # stamps: name -> MD5 of the cleaned file written last time.
     stamps = json.load(open(stamp_file, encoding="utf-8")) if os.path.isfile(stamp_file) else {}
     for kind in KINDS:
         name = f"UoM{kind}{pid}.csv"
@@ -106,11 +114,14 @@ for pid in sorted(d for d in os.listdir(RAW) if os.path.isdir(os.path.join(RAW, 
         # A file whose checksum is not the one recorded after cleaning is new input.
         if os.path.isfile(cur) and md5(cur) != stamps.get(name):
             shutil.copy2(cur, orig)                     # new input: it becomes the original
+        # No original (the file never existed for this participant): nothing to do.
         if not os.path.isfile(orig):
             continue
+        # Always clean from the original, read as text so nothing is reformatted.
         d = pd.read_csv(orig, dtype=str)
         n0 = len(d)
         # Rule 1: blank rows.
+        # A row is blank if every cell is empty or only spaces.
         blank = ~d.apply(lambda s: s.fillna("").str.strip() != "").any(axis=1)
         d = d[~blank]
         # Rule 2: exact copies.
@@ -119,6 +130,7 @@ for pid in sorted(d for d in os.listdir(RAW) if os.path.isdir(os.path.join(RAW, 
         conflict = pd.Series(False, index=d.index)
         # Rule 3 (glucose): same time stamp, different value -> keep the first.
         if kind == "Glucose":
+            # The time-stamp column is the one whose name ends in _ts.
             tcol = next(c for c in d.columns if c.strip().endswith("_ts"))
             conflict = d[tcol].str.strip().duplicated(keep="first")
             d = d[~conflict]
@@ -127,12 +139,14 @@ for pid in sorted(d for d in os.listdir(RAW) if os.path.isdir(os.path.join(RAW, 
         if kind == "Bolus":
             repeated = repeated_boluses(d)
             d = d[~repeated]
+        # Overwrite the file in raw/<id>/ with the cleaned version.
         d.to_csv(cur, index=False)
         stamps[name] = md5(cur)                         # this file is now the cleaned version
         log.append({"file": name, "rows_before": n0, "blank": int(blank.sum()),
                     "exact_copies": int(exact.sum()), "conflicting_glucose": int(conflict.sum()),
                     "repeated_bolus": int(repeated.sum()),
                     "rows_after": len(d)})
+    # Save the checksums and the log of this participant.
     if log:
         json.dump(stamps, open(stamp_file, "w", encoding="utf-8"), indent=1)
         pd.DataFrame(log).to_csv(os.path.join(keep_dir, "cleaning_log.csv"), index=False)
@@ -143,5 +157,6 @@ for pid in sorted(d for d in os.listdir(RAW) if os.path.isdir(os.path.join(RAW, 
                                f"exact copies {r['exact_copies']}, conflicting {r['conflicting_glucose']}, "
                                f"repeated bolus {r['repeated_bolus']})")
 
+# One line per file with rows removed.
 print("\n".join(summary) if summary else "Nothing to remove.")
 print("\nOriginal files kept in raw/<id>/original/; details in cleaning_log.csv.")

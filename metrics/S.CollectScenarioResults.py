@@ -58,6 +58,7 @@ import globals
 # Scenarios simulated in the InSilico module (Code3/InSilico/simulations/).
 SIM_ROOT = globals.sims_root()
 OUT = globals.path4
+# Target range (TIR) 3.9-10.0 mmol/L; taMAE is measured against 6 mmol/L.
 TIR_LOW, TIR_HIGH, TARGET = 3.9, 10.0, 6.0
 MGDL = globals.MGDL_PER_MMOL          # mmol/L -> mg/dL
 DAYS = ("Day1", "Day2")
@@ -66,6 +67,7 @@ DAYS = ("Day1", "Day2")
 def read_ig(folder):
     """IG (mmol/L), one value per minute, from state_results.xlsx."""
     d = pd.read_excel(os.path.join(folder, "state_results.xlsx"), sheet_name="Patient_0")
+    # Clean the column names (Excel headers can carry spaces).
     d.columns = d.columns.str.strip()
     return d["IG (mmol/L)"].reset_index(drop=True)
 
@@ -81,7 +83,9 @@ def basal_units_per_day(folder):
 
 def metrics(bg1, bg2):
     std1, std2 = bg1.std(), bg2.std()          # sample SD (ddof=1)
+    # taMAE: mean |IG - 6| of each arm.
     ta1, ta2 = np.mean(np.abs(bg1 - TARGET)), np.mean(np.abs(bg2 - TARGET))
+    # TIR: % of minutes within the target range.
     in_range = lambda x: 100 * ((x >= TIR_LOW) & (x <= TIR_HIGH)).mean()
     eps = 1e-12
     return {
@@ -102,6 +106,8 @@ def label(pid):
 
 def write_manuscript_tables(m):
     """The results tables of the manuscript, same columns and rounding."""
+    # Manuscript labels (Man01, ...), sorted; columns renamed and rounded as in
+    # the manuscript tables.
     m = m.assign(ID=m["ID"].map(label)).sort_values("ID")
     cols = {"STD_1_mmolL": "SD1 (mmol/L)", "STD_2_mmolL": "SD2 (mmol/L)",
             "STD_1_mgdl": "SD1 (mg/dL)", "STD_2_mgdl": "SD2 (mg/dL)",
@@ -113,6 +119,8 @@ def write_manuscript_tables(m):
         if len(d):
             (d[["ID"] + list(cols)].rename(columns=cols).round(2)
                .to_csv(os.path.join(OUT, name), index=False))
+    # Table 5: the hourly measures and TIR of both days side by side, plus the
+    # change in daily basal insulin.
     safety = {"Mean_Bias_%": "Mean Bias (%)", "Within15_%hrs": "Within ±15% (%hrs)",
               "LowerVar_%hrs": "Lower Variability (%hrs)",
               "TIR_1_%": "TIR1 (%)", "TIR_2_%": "TIR2 (%)"}
@@ -129,6 +137,7 @@ def write_manuscript_tables(m):
 os.makedirs(OUT, exist_ok=True)
 per_day = {d: {} for d in DAYS}
 rows = []
+# Every Simulation_<id2> folder: id from its parent folder, id2 from its name.
 for sim in sorted(glob.glob(os.path.join(SIM_ROOT, "*", "Simulation_*"))):
     pid = os.path.basename(os.path.dirname(sim))
     vid = os.path.basename(sim)[len("Simulation_"):]
@@ -140,19 +149,23 @@ for sim in sorted(glob.glob(os.path.join(SIM_ROOT, "*", "Simulation_*"))):
             print(f"[{pid}] {day}: state_results.xlsx missing in "
                   + ", ".join(os.path.relpath(m, sim) for m in missing))
             continue
+        # IG before (BG_1) and after (BG_2); also kept by day for Day1.csv, Day2.csv.
         bg1, bg2 = read_ig(before), read_ig(after)
         per_day[day][f"BG_1_{pid}"] = bg1
         per_day[day][f"BG_2_{pid}"] = bg2
 
+        # Hourly mean and SD of each arm (hour = minute // 60).
         hours = np.arange(len(bg1)) // 60
         h = pd.DataFrame({"hour": hours, "BG_1": bg1, "BG_2": bg2}).groupby("hour")
         hourly = pd.concat([h.mean().add_suffix("_mean"), h.std().add_suffix("_std")], axis=1)
         hourly.to_csv(os.path.join(OUT, f"hourly_mean_and_std_{pid}_{day}.csv"))
+        # Relative bias of each hour, then the three hourly measures of Table 5.
         rel_bias = (hourly["BG_2_mean"] - hourly["BG_1_mean"]) / hourly["BG_1_mean"] * 100
         iso = {"Mean_Bias_%": rel_bias.mean(),
                "Within15_%hrs": 100 * (rel_bias.abs() <= 15).mean(),
                "LowerVar_%hrs": 100 * (hourly["BG_2_std"] < hourly["BG_1_std"]).mean()}
 
+        # Daily basal insulin of each arm, from its settings, and the change.
         u1, u2 = basal_units_per_day(before), basal_units_per_day(after)
         rows.append({"ID": pid, "VirtualPatient": vid, "Day": day,
                      **metrics(bg1, bg2), **iso,
@@ -160,6 +173,7 @@ for sim in sorted(glob.glob(os.path.join(SIM_ROOT, "*", "Simulation_*"))):
                      "DeltaInsulin_U_day": u2 - u1})
         print(f"[{pid}] {day}: done")
 
+# Save the per-minute tables, the metrics and the manuscript tables.
 for day, cols in per_day.items():
     if cols:
         pd.DataFrame(cols).to_csv(os.path.join(OUT, f"{day}.csv"), index=False)

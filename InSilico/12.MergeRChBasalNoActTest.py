@@ -37,6 +37,8 @@ id=globals.id;
 print(id)
 id2=globals.id2;
 print(id2)
+# path2: processed/<id>/. Sampling_time = 0.1 h: a point every 6 min in the
+# figure.
 path2=globals.fileToSave;
 fileToRead1="BGHourRelativeChange"+str(id2);
 fileToRead2="BasalSimulated"+str(id2);
@@ -47,6 +49,8 @@ Sampling_time=0.1;
 # reading two csv files
 # -----------------------------------------------------------#
 
+# data1: minute grid with the hourly median and flag (step 10).
+# data2: basal rate and active insulin every 5 minutes (step 6).
 data1 = pd.read_csv(str(path2)+str(fileToRead1)+str("0To24")+"medians"+"_wCN"+".csv");
 data2 = pd.read_csv(str(path2)+str(fileToRead2)+".csv");
 
@@ -56,8 +60,13 @@ data2['Key']=data2['Key'].str.strip();
 # print(data2);
 
 # using merge function by setting how='left'
+# Left join on Key: the 5-minute values land on their minutes; the other
+# minutes are empty.
 output1 = pd.merge(data1,data2,on='Key',how='left');
 
+# BasalInfused carried forward (a rate holds until the next one); the other
+# gaps (ActiveInsulin) filled linearly, up to 5 minutes forward. This table
+# is the output of the step.
 output1['BasalInfused'].fillna(method='ffill', inplace=True);
 output2=output1.interpolate(limit=5, limit_direction="forward");
 output2.to_csv(str(path2)+str(fileToSave)+".csv",index=False);
@@ -65,6 +74,7 @@ output2.to_csv(str(path2)+str(fileToSave)+".csv",index=False);
 # -----------------------------------------------------------#
 # Conversion to arrays
 # -----------------------------------------------------------#
+# From here on: the figure only (shown, not saved).
 Key=[];
 MedRelChange=[];
 ActiveInsulin=[];
@@ -85,6 +95,7 @@ T_BasalInfused=[];
 T_Reliability=[];
 
 # Sampling
+# One point every 6 minutes (i % 6 == 1).
 for i in range(len(Key)):
     # print(i);
     (h, m, s) = Key[i].split(':');
@@ -101,6 +112,7 @@ for i in range(len(Key)):
 #                    Generation of levels
 # -----------------------------------------------------------#
 # Blood Glucose
+# Colour of each point by reliability: 1 red, 2 yellow, 3 green.
 col =np.where(np.array(T_Reliability)==1,"Red",np.where(np.array(T_Reliability)==2,"Yellow","Green"));
 colordf=pd.DataFrame(col,columns=["Color"]);
 print(colordf);
@@ -109,6 +121,9 @@ print(colordf);
 # -----------------------------------------------------------#
 #                    Graph in general
 # -----------------------------------------------------------#
+# Top panel: active insulin and programmed basal rate.
+# Bottom panel: median within-hour change, coloured by reliability; each
+# label is added once.
 fig, (ax1,ax2)= plt.subplots(nrows=2, sharex=True);
 plt.suptitle("Blood Glucose Dynamic, ID: "+str(id2));
 # -----------------------------------------------------------#
@@ -163,6 +178,8 @@ for i in range (len(T_Key)):
 #              Reordering the labels
 # -----------------------------------------------------------#
 
+# Order of the legend labels: worked out but not applied (the line that
+# would apply it is commented out).
 handles, labels = ax2.get_legend_handles_labels();
 # specify order
 order = [];  

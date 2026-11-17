@@ -1,4 +1,4 @@
-ID,hour,reliability,outlier_hour,abs_diff_centred_mmolL,abs_diff_centred_high_rel_mmolL
+ID,hour,reliability,trimmed_hour,abs_diff_centred_mmolL,abs_diff_centred_high_rel_mmolL
 2301,0,low,True,1.354,1.699
 2301,1,medium,True,0.492,0.837
 2301,2,high,False,0.072,0.272

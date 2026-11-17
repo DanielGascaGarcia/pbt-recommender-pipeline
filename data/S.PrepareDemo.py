@@ -38,9 +38,11 @@ import globals
 if not globals.DEMO:
     sys.exit("S.PrepareDemo.py is for demo mode only (set DEMO=1).")
 
+# The simulator runs shipped with the demo (written by S.GenerateSampleData.py).
 src = os.path.join(globals.ROOT, "sample_data", "simulations")
 if not os.path.isdir(src):
     sys.exit(f"Not found: {src}")
+# In demo mode: demo_output/simulator_runs/.
 dest = globals.simulator_runs_root()
 shutil.rmtree(dest, ignore_errors=True)          # start from the shipped files
 shutil.copytree(src, dest)

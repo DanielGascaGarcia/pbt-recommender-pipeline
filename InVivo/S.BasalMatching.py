@@ -90,6 +90,8 @@ def load_pairs():
 def virtual_basal():
     """{patient number: basal U/h}, from the Py-mgipsim files when available."""
     out = {}
+    # Basal rate of each Patient_<n>.json: the field of demographic_info whose
+    # name contains 'basal' (and not 'total'); n from the file name.
     for f in glob.glob(os.path.join(globals.path, "Patient_*.json")):
         try:
             info = json.load(open(f, encoding="utf-8"))["demographic_info"]
@@ -102,6 +104,8 @@ def virtual_basal():
 
 
 def load_basal(path):
+    # Basal file: drop unnamed columns, read the time stamp, drop unreadable and
+    # repeated times, sort, add the date.
     df = pd.read_csv(path, encoding="utf-8-sig")
     df = df[[c for c in df.columns if not str(c).startswith("Unnamed")]]
     df["ts"] = pd.to_datetime(df["basal_ts"], format="%d/%m/%Y %H:%M", errors="coerce")
@@ -117,6 +121,8 @@ def day_total(g, d):
     r = g["basal_dose"].astype(float).tolist()
     start = pd.Timestamp(d)
     end = start + pd.Timedelta(days=1)
+    # From 00:00 to the first reading at the first rate; then each rate until
+    # the next reading (the last one until 24:00). Rate (U/h) x hours = U.
     tot = r[0] * (t[0] - start).total_seconds() / 3600
     for i in range(len(t)):
         nxt = t[i + 1] if i + 1 < len(t) else end
@@ -130,6 +136,7 @@ def daily_bolus(pid):
     if not os.path.isfile(path):
         return pd.Series(dtype=float)
     df = pd.read_csv(path, encoding="utf-8-sig")
+    # Bolus records with a readable time and dose, summed by date.
     ts = pd.to_datetime(df["bolus_ts"], format="%d/%m/%Y %H:%M", errors="coerce")
     dose = pd.to_numeric(df["bolus_dose"], errors="coerce")
     ok = ts.notna() & dose.notna()
@@ -137,6 +144,8 @@ def daily_bolus(pid):
 
 
 def daily_totals(df):
+    # Regime from the first row: L (injections) -> sum of the doses of each day;
+    # otherwise (pump) -> step integration of the rate.
     kind = str(df["insulin_kind"].iloc[0]).strip().upper() if "insulin_kind" in df else "R"
     if kind == "L":
         return df.groupby("date")["basal_dose"].sum(), "L (injections)"
@@ -147,6 +156,7 @@ def daily_totals(df):
 # Main
 # -----------------------------------------------------------#
 pairs = load_pairs()
+# IDs given on the command line, or every participant of pairs.csv.
 wanted = sys.argv[1:] or list(pairs)
 vb = virtual_basal()
 rows = []
@@ -157,6 +167,7 @@ for pid in wanted:
         continue
     df = load_basal(path)
     v, regime = daily_totals(df)
+    # Partial days: fewer rows than half the median count (pump only).
     per_day = df.groupby("date").size()
     partial = int((per_day < PARTIAL_FRACTION * per_day.median()).sum()) if regime.startswith("R") else 0
     u = float(v.median())
@@ -176,6 +187,8 @@ for pid in wanted:
     bolus_txt = f"{b.median():.2f}" if len(b) else "n/a"
     print(f"[{pid}] basal {u:.2f} U/day -> {selected}  (pairs.csv: {in_pairs}); bolus {bolus_txt} U/day")
 
+# Table 1 saved to results/invivo/tables/; then the agreement with
+# pairs.csv is printed.
 out = pd.DataFrame(rows)
 os.makedirs(globals.path4, exist_ok=True)
 out.to_csv(os.path.join(globals.path4, "Table1_basal_matching.csv"), index=False)

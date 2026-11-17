@@ -67,6 +67,7 @@ import globals
 # silently change the input data whenever a new version is published.
 ZENODO_RECORD = globals.ZENODO_RECORD
 
+# HERE: the data folder (module being run); PAIRS_FILE: pairs.csv.
 HERE = globals.HERE
 PAIRS_FILE = globals.PAIRS_FILE
 ROOT = globals.ROOT               # project root (Code3/): input data shared by the modules
@@ -85,8 +86,10 @@ def load_ids():
     'zenodo'. Participants from the clinical dataset are not on Zenodo and are skipped.
     """
     with open(PAIRS_FILE, encoding="utf-8") as f:
+        # Lines starting with # are comments; the first line left is the header.
         lines = [l for l in f if l.strip() and not l.lstrip().startswith("#")]
     header = [h.strip() for h in lines[0].split(",")]
+    # Positions of the id and source columns (source may be absent).
     col_id = header.index("id")
     col_src = header.index("source") if "source" in header else None
     ids = []
@@ -101,6 +104,7 @@ def md5_of(path):
     """MD5 checksum of a file, read in chunks so large files do not fill memory."""
     h = hashlib.md5()
     with open(path, "rb") as f:
+        # 1 MB at a time until the end of the file (b'' = nothing left).
         for chunk in iter(lambda: f.read(1 << 20), b""):
             h.update(chunk)
     return h.hexdigest()
@@ -114,6 +118,7 @@ def download_record_zip(record):
     """
     # 1) Ask the Zenodo API which files the record contains.
     api_url = f"https://zenodo.org/api/records/{record}"
+    # Metadata of the record (JSON): its version and its files.
     with urllib.request.urlopen(api_url) as r:
         meta = json.load(r)
 
@@ -121,11 +126,13 @@ def download_record_zip(record):
     files = meta.get("files", [])
     if isinstance(files, dict):            # newer API layout
         files = list(files.get("entries", {}).values())
+    # The dataset is published as a single zip.
     zips = [f for f in files if f["key"].endswith(".zip")]
     if len(zips) != 1:
         sys.exit(f"Expected exactly one zip in record {record}, found {len(zips)}.")
 
     key = zips[0]["key"]
+    # Zenodo writes the checksum as 'md5:<hex>'; keep the hex part.
     expected_md5 = zips[0].get("checksum", "").replace("md5:", "")
     print(f"Zenodo record {record}, version {version}: {key}")
 
@@ -154,11 +161,13 @@ def index_source(source):
     Returns {file_name: [locations]}.
     """
     index = {}
+    # Zip: list its members (folders end with '/', skipped).
     if os.path.isfile(source) and source.lower().endswith(".zip"):
         with zipfile.ZipFile(source) as z:
             for member in z.namelist():
                 if not member.endswith("/"):
                     index.setdefault(os.path.basename(member), []).append(member)
+    # Folder: every file at any depth.
     elif os.path.isdir(source):
         for p in glob.glob(os.path.join(source, "**", "*"), recursive=True):
             if os.path.isfile(p):
@@ -171,6 +180,7 @@ def index_source(source):
 def copy_file(source, location, dest_dir):
     """Copy one file from the zip (member name) or the folder (path) into dest_dir."""
     target = os.path.join(dest_dir, os.path.basename(location))
+    # A path that is a file means the source is the zip: read the member from it.
     if os.path.isfile(source):                       # zip source
         with zipfile.ZipFile(source) as z, z.open(location) as src, open(target, "wb") as dst:
             shutil.copyfileobj(src, dst)
@@ -184,6 +194,8 @@ def copy_file(source, location, dest_dir):
 # Choose the data source: a local zip/folder, or the pinned Zenodo record.
 local_dirs = sorted(d for d in glob.glob(f"{ROOT}/ManchesterCSCoordinatedDiabetesStudy-*")
                     if os.path.isdir(d))
+# Order of preference: --local path, one unzipped copy in the project root,
+# the pinned Zenodo record.
 if len(sys.argv) > 2 and sys.argv[1] == "--local":
     source = sys.argv[2]
 elif len(local_dirs) == 1:
@@ -208,6 +220,7 @@ for pid in load_ids():
     for kind in KINDS:
         name = f"UoM{kind}{pid}.csv"
         hits = index.get(name, [])
+        # Exactly one copy of the file in the source: copy it; none or several: report.
         if len(hits) == 1:
             copy_file(source, hits[0], dest)
             print(f"{pid}: {name} -> {dest}")
@@ -217,6 +230,7 @@ for pid in load_ids():
             # Ambiguous: do not guess which copy is the right one.
             problems.append(f"{pid}: {name} found {len(hits)} times, not copied")
 
+# Every problem is listed before stopping, so they can all be fixed at once.
 if problems:
     print("\nProblems:")
     for p in problems:

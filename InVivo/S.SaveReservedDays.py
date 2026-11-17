@@ -55,6 +55,7 @@ import globals
 # -----------------------------------------------------------#
 # Configuration
 # -----------------------------------------------------------#
+# IDS: used only when the script is run on its own without arguments.
 IDS = ["2301", "2304", "2307", "2308", "2309"] + [f"Mann{i:02d}" for i in range(1, 13)]
 TYPES = ["Glucose", "Basal", "Bolus", "Nutrition"]
 N_MEALS = globals.N_MEALS   # meals per day in the simulation scenario
@@ -70,6 +71,7 @@ def write_top_meals(src, dst, n=N_MEALS):
     d["Key"] = d["Key"].astype(str).str.strip()
     d["CHO"] = pd.to_numeric(d["CHO"], errors="coerce")
     d = d[d["CHO"] > 0]
+    # The n largest by CHO (ties: the earlier Key first), back in time order.
     top = (d.sort_values(["CHO", "Key"], ascending=[False, True], kind="stable")
              .head(n)
              .sort_values("Key", kind="stable"))
@@ -78,6 +80,7 @@ def write_top_meals(src, dst, n=N_MEALS):
 
 def save_reserved(pid):
     folder = globals.processed_dir(pid)
+    # Analysis days and the RESERVED_DAYS (2) days that follow (globals.day_split).
     analysis, reserved = globals.day_split(pid)
     if not reserved:
         print(f"[{pid}] no reserved days (only {len(analysis)} days of data)")
@@ -90,6 +93,7 @@ def save_reserved(pid):
         out = os.path.join(days_dir, f"Day{k}")
         os.makedirs(out, exist_ok=True)
         copied = []
+        # The four main types; nutrition reduced to the scenario meals.
         for t in TYPES:
             src = os.path.join(folder, f"UoM{t}{pid}_{date}.csv")
             if os.path.isfile(src):
@@ -109,6 +113,7 @@ def save_reserved(pid):
         log.append({"day": f"Day{k}", "date": date, "copied": " ".join(copied)})
         print(f"[{pid}] Day{k} = {date}: {', '.join(copied) or 'nothing'}")
 
+    # reserved_days.csv: which date is Day1 and Day2, and what was copied.
     pd.DataFrame(log).to_csv(os.path.join(days_dir, "reserved_days.csv"), index=False)
     print(f"[{pid}] analysis days: {len(analysis)} "
           f"({analysis[0]} to {analysis[-1]})")
@@ -117,6 +122,8 @@ def save_reserved(pid):
 # -----------------------------------------------------------#
 # Main
 # -----------------------------------------------------------#
+# Who to process: the IDs given, else the participant of the orchestrator,
+# else IDS.
 if sys.argv[1:]:
     targets = sys.argv[1:]
 elif "PATIENT_ID" in os.environ:          # called by 17.RunAllZenodo.py

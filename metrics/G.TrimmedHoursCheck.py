@@ -35,10 +35,12 @@ import pandas as pd
 
 import globals
 
+# SIMS: participants with a working simulation folder.
 SIMS = globals.sims_root()
 
 
 def trimmed_13(pid):
+    # A: replica of step 13 (the method G.CurveCheck and S.CurveAgreement use).
     f = os.path.join(globals.invivo_dir(pid), f"ComparisonJoinedNoActivity{pid}.csv")
     if not os.path.isfile(f):
         return None
@@ -63,6 +65,8 @@ def trimmed_13(pid):
 
 
 def trimmed_curvecheck(pid):
+    # B: the earlier method, over the 24 hourly values (kept to document the
+    # difference).
     f = os.path.join(globals.invivo_dir(pid), f"BGHourRelativeChange{pid}0To24medians_wCN.csv")
     if not os.path.isfile(f):
         return None
@@ -78,6 +82,7 @@ def trimmed_curvecheck(pid):
     return set(int(x) for x in np.where(out.fillna(False).to_numpy())[0])
 
 
+# One row per participant: the hours of each method and those in only one.
 rows = []
 for pid in sorted(d for d in os.listdir(SIMS) if os.path.isdir(os.path.join(SIMS, d))):
     a, b = trimmed_13(pid), trimmed_curvecheck(pid)

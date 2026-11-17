@@ -1,4 +1,4 @@
-ID,hours,reference_column,r,MAE_centred_mmolL,high_rel_hours,centring_high_rel,MAE_centred_high_rel_mmolL,MAE_centred_high_rel_in_high_rel_hours_mmolL,offset_mmolL,range_ref_mmolL,range_sim_mmolL,outlier_hours,r_without_outlier_hours,target_hours,r_without_grey_and_outlier_hours,MAE_centred_without_outlier_hours_mmolL
+ID,hours,reference_column,r,MAE_centred_mmolL,high_rel_hours,centring_high_rel,MAE_centred_high_rel_mmolL,MAE_centred_high_rel_in_high_rel_hours_mmolL,offset_mmolL,range_ref_mmolL,range_sim_mmolL,trimmed_hours,r_without_trimmed_hours,target_hours,r_without_grey_and_trimmed_hours,MAE_centred_without_trimmed_hours_mmolL
 2301,24,MedianBGValue,0.842,0.476,7,high_rel,0.505,0.171,-2.408,3.471,2.339,8,0.885,16,0.885,0.343
 2304,24,MedianBGValue,0.54,0.639,7,high_rel,0.626,0.302,-2.861,3.174,2.148,7,0.716,17,0.716,0.537
 2307,24,MedianBGValue,0.758,1.015,7,high_rel,0.943,0.325,-1.501,6.98,3.182,4,0.749,18,0.758,0.936

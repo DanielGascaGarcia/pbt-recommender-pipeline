@@ -48,6 +48,8 @@ id=globals.id;
 # id="adolescent#006";
 # id="child#010";
 # id="adult#001";
+# path2: processed/<id>/. Sampling_time = 0.1 h: a point every 6 min in the
+# figure. (The commented ids above are from earlier datasets.)
 path2= globals.fileToSave;
 fileToRead1="BGHourRelativeChange"+str(id);
 fileToRead2="BasalSimulated"+str(id);
@@ -58,6 +60,8 @@ Sampling_time=0.1;
 # reading two csv files
 # -----------------------------------------------------------#
 
+# data1: minute grid with the hourly median and flag (step 10).
+# data2: basal rate and active insulin every 5 minutes (step 6).
 data1 = pd.read_csv(str(path2)+str(fileToRead1)+str("0To24")+"medians"+"_wCN"+".csv");
 data2 = pd.read_csv(str(path2)+str(fileToRead2)+".csv");
 
@@ -67,11 +71,14 @@ data2['Key']=data2['Key'].str.strip();
 # print(data2);
 
 # using merge function by setting how='left'
+# Left join on Key: the 5-minute values land on their minutes; the other
+# minutes are empty.
 output1 = pd.merge(data1,data2,on='Key',how='left');
 
 # Programmed rate holds between its 5-min values; the action curve is interpolated.
 output1['BasalInfused'].fillna(method='ffill', inplace=True);
 output2=output1.interpolate(limit=5, limit_direction="forward");
+# This table is the output of the step; the rest of the script is the figure.
 output2.to_csv(str(path2)+str(fileToSave)+".csv",index=False);
 
 # -----------------------------------------------------------#
@@ -92,6 +99,7 @@ Reliability = output2["Flag"].to_numpy()
 # One point every 'Sampling_time' hours (e.g. 0.1 h = 6 min)
 Sampling_time = float(Sampling_time)
 step = Sampling_time  # hours
+# mask: the minutes that fall on a multiple of 0.1 h (every 6 minutes).
 mask = np.isclose((key_hours / step) - np.round(key_hours / step), 0, atol=1e-6)
 
 T_Key          = key_hours[mask]
@@ -160,6 +168,7 @@ ax2.axhline(0, linewidth=2, color="black")
 ax2.plot(T_Key, y_primary, "o--", label="BG Rel. Change (series)", zorder=1)
 
 # Points colored by reliability
+# Each reliability label is added to the legend once.
 labels_map = {1: "Low reliability of BG", 2: "Medium reliability of BG", 3: "High reliability of BG"}
 used = set()
 for x, y, r, c in zip(T_Key, y_primary, T_Reliability, colors):

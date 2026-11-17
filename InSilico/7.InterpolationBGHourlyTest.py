@@ -32,11 +32,15 @@ id=globals.id;
 print(id)
 id2=globals.id2;
 print(id2)
+# path2: processed/<id>/. Reads BGHour<id2>..., writes BGHourInterpolated<id2>...
 path2=globals.fileToSave
 fileToRead="BGHour"+str(id2);
 fileToSave="BGHourInterpolated"+str(id2);
+# Silence pandas FutureWarnings, so the log stays readable.
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
+# For each hour: fill gaps of up to 5 consecutive minutes, in both
+# directions, by linear interpolation; longer gaps stay empty.
 for i in range(24):
     data = pd.read_csv(str(path2)+str(fileToRead)+str(i)+str("To")+str(i+1)+".csv"); 
     dI=data.interpolate(limit=5, limit_direction='both');

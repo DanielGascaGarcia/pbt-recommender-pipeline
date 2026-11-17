@@ -50,10 +50,13 @@ import sys
 
 import globals
 
+# HERE: the InVivo folder (every step runs from it); logs go to InVivo/logs/.
 HERE = os.path.dirname(os.path.abspath(__file__))
 PAIRS_FILE = globals.PAIRS_FILE      # pairs.csv, or sample_data/pairs_demo.csv in demo mode
 LOG_DIR = os.path.join(HERE, "logs")
 
+# Steps in order. The missing numbers (1, 2, 11, 14) are steps of earlier
+# versions not needed here.
 SCRIPTS = [
     "0.GeneratorExamplesZenodo.py",
     "3.PivotGeneratorZenodo.py",
@@ -86,6 +89,8 @@ def load_pairs():
     """Return [(id, id2, source)] from pairs.csv, skipping comments."""
     pairs = []
     with open(PAIRS_FILE, newline="", encoding="utf-8") as f:
+        # Lines starting with # are comments; the rest is read as a CSV with header
+        # id,id2,source.
         rows = (line for line in f if line.strip() and not line.lstrip().startswith("#"))
         for row in csv.DictReader(rows):
             source = (row.get("source") or "").strip().lower()
@@ -95,6 +100,7 @@ def load_pairs():
 
 def raw_files_present(pid):
     """True if the four input files the pipeline reads are already in raw/{id}/."""
+    # The four input files: UoMGlucose, UoMNutrition, UoMBolus, UoMBasal.
     return all(os.path.isfile(f"{globals.raw_dir(pid)}UoM{k}{pid}.csv")
                for k in ("Glucose", "Nutrition", "Bolus", "Basal"))
 
@@ -110,6 +116,7 @@ def ensure_input_data(pairs):
 
 
 def expected_outputs(pid):
+    # Files every participant must end with, checked after the steps.
     d = globals.processed_dir(pid)
     return [
         f"{d}BGwNMLeftJoined{pid}.csv",
@@ -123,6 +130,7 @@ def expected_outputs(pid):
 
 def preflight(pid, vid):
     """Fail early with a clear message instead of deep inside a script."""
+    # Only the glucose file is required to start; the other types are optional.
     problems = []
     raw = f"{globals.raw_dir(pid)}UoMGlucose{pid}.csv"
     if not os.path.isfile(raw):
@@ -136,6 +144,8 @@ def run_participant(pid, vid, log_path):
     shutil.rmtree(out_dir, ignore_errors=True)
     os.makedirs(out_dir, exist_ok=True)
 
+    # Environment of every step: the pair (read by globals.py), the Agg backend
+    # and UTF-8 output.
     env = os.environ.copy()
     env["PATIENT_ID"] = pid
     env["VIRTUAL_ID"] = vid
@@ -144,6 +154,8 @@ def run_participant(pid, vid, log_path):
 
     with open(log_path, "w", encoding="utf-8") as log:
         log.write(f"Interpreter: {sys.executable}\nPair: {pid} -> {vid}\n\n")
+        # The output of each step goes to the participant's log; the first failure
+        # stops this participant.
         for script in SCRIPTS:
             log.write(f"===== {script} =====\n")
             log.flush()
@@ -154,6 +166,7 @@ def run_participant(pid, vid, log_path):
             )
             if result.returncode != 0:
                 return f"failed at {script} (exit {result.returncode})"
+    # A run that finished but left an expected file missing or empty is not 'ok'.
     missing = [p for p in expected_outputs(pid)
                if not os.path.isfile(p) or os.path.getsize(p) == 0]
     if missing:
@@ -164,6 +177,8 @@ def run_participant(pid, vid, log_path):
 # -----------------------------------------------------------#
 # Main
 # -----------------------------------------------------------#
+# Main part: check the scripts, read the pairs (by source or by ID, if given),
+# run each participant, write the summary; exit code 1 if any is not 'ok'.
 print(f"Interpreter: {sys.executable}")
 
 missing_scripts = [s for s in SCRIPTS if not os.path.isfile(os.path.join(HERE, s))]
@@ -186,6 +201,8 @@ os.makedirs(LOG_DIR, exist_ok=True)
 stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 summary = []
 
+# Each participant is independent: a failure is recorded and the next one
+# is run.
 for pid, vid, _ in pairs:
     print(f"\n--- {pid} -> {vid} ---")
     problems = preflight(pid, vid)

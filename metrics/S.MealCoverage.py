@@ -45,15 +45,19 @@ import pandas as pd
 
 import globals
 
+# Silence pandas UserWarnings (date parsing).
 warnings.simplefilter("ignore", UserWarning)
 
 ROOT = globals.ROOT
 OUT = globals.path4
 SIMS = globals.sims_root()
+# WINDOW_MIN: the 6-h window after a meal, in minutes.
 WINDOW_MIN = globals.MEAL_WINDOW_HOURS * 60
 
 
 def find_col(df, keys):
+    # First column whose name contains one of the keys (the two datasets name
+    # their columns differently).
     for c in df.columns:
         if any(k in c.lower() for k in keys):
             return c
@@ -61,6 +65,7 @@ def find_col(df, keys):
 
 
 def minutes(key):
+    # HH:MM:SS -> minute of the day.
     h, m, s = str(key).strip()[:8].split(":")
     return int(h) * 60 + int(m) + int(s) / 60
 
@@ -78,11 +83,13 @@ def raw_meals(pid):
 
 
 def share(g):
+    # share: number of meals, total grams, grams of the N_MEALS largest.
     g = g.sort_values(ascending=False)
     return len(g), g.sum(), g.head(globals.N_MEALS).sum()
 
 
 def find(folder, name):
+    # First file with that name anywhere under the folder.
     hits = glob.glob(os.path.join(folder, "**", name), recursive=True)
     return hits[0] if hits else None
 
@@ -97,6 +104,7 @@ for pid in pids:
         continue
 
     # 1. Evaluation days
+    # Meals of the evaluation days, from meal_scenarios.csv (S.BuildMealScenarios).
     ms = glob.glob(os.path.join(SIMS, pid, "Simulation_*", "meal_scenarios.csv"))
     if len(ms) == 1:
         m = pd.read_csv(ms[0], sep=None, engine="python")
@@ -114,6 +122,9 @@ for pid in pids:
     analysis_dates = all_dates[:n_an]
     dates = [str(d) for d in analysis_dates]
     proc = globals.invivo_dir(pid)
+    # retained: minutes of the readings kept on each day; windows: the 6-h
+    # windows of the meals NOT among the 4 largest; no_meals: days without a meal
+    # file.
     retained, windows, no_meals = {}, {d: [] for d in dates}, set()
     for d in dates:
         n, tot, top = share(meals.loc[meals.date == d, "g"])
@@ -124,6 +135,7 @@ for pid in pids:
         if bg is None:
             continue
         b = pd.read_csv(bg)
+        # Minutes of the readings kept after the meal exclusion (BGValue not empty).
         retained[d] = [minutes(k) for k, v in zip(b["Key"], b["BGValue"]) if pd.notna(v)]
         mf = find(proc, f"UoMNutrition{pid}_{d}.csv")
         if mf is None:
@@ -132,6 +144,7 @@ for pid in pids:
         dm = pd.read_csv(mf)
         small = dm.drop(index=dm.sort_values(by="CHO", ascending=False).head(globals.N_MEALS).index)  # as 4.MealBolusDetection.py
         small = small[pd.to_numeric(small["CHO"], errors="coerce") > 0]   # 0 g entries (e.g. coffee) carry no meal effect
+        # 6-h window of each small meal; the part after midnight goes to the next day.
         for k in small["Key"]:
             t0 = minutes(k)
             t1 = t0 + WINDOW_MIN
@@ -139,6 +152,8 @@ for pid in pids:
             if t1 > 1440:
                 nd = (datetime.strptime(d, "%Y%m%d") + timedelta(days=1)).strftime("%Y%m%d")
                 windows.setdefault(nd, []).append((0, t1 - 1440))
+    # Retained readings, those inside a small-meal window, and those on days
+    # without meal records.
     n_ret = sum(len(v) for v in retained.values())
     n_small = sum(sum(any(a <= t <= b for a, b in windows.get(d, [])) for t in v) for d, v in retained.items())
     n_nomeal = sum(len(retained[d]) for d in no_meals if d in retained)
@@ -153,6 +168,7 @@ for pid in pids:
                  "on_days_without_meals_pct": 100 * n_nomeal / n_ret if n_ret else None,
                  "_small": n_small, "_nomeal": n_nomeal, "_tot": tot, "_top": top})
 
+# Save the three tables and the cohort summary (pooled over participants).
 ev, an, part = pd.DataFrame(ev), pd.DataFrame(an), pd.DataFrame(part)
 ev.round(1).to_csv(os.path.join(OUT, "MealCoverage_evaluation_days.csv"), index=False)
 an.round(1).to_csv(os.path.join(OUT, "MealCoverage_analysis_days.csv"), index=False)

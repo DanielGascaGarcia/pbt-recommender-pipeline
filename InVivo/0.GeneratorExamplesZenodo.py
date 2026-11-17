@@ -48,9 +48,12 @@ import globals
 
 
 # --- Configurable global variable ---
+# id: participant whose files are split (PATIENT_ID, set by the orchestrator).
 id = globals.id;
 
 # --- Folder paths ---
+# filetoread: raw/<id>/ (the four input files).
+# fileToSave: processed/<id>/ (one file per day and type).
 filetoread = globals.filetoread1;
 fileToSave = globals.fileToSave;
 
@@ -61,6 +64,8 @@ os.makedirs(fileToSave, exist_ok=True)
 # Utility function: parse datetimes flexibly
 # -----------------------------------------------------------#
 def parse_datetime(ts_str):
+    # Formats accepted: without seconds, with seconds, and with two spaces before
+    # the time (written by some exports). The first one that reads the text wins.
     ts_str = ts_str.strip()
     for fmt in ("%d/%m/%Y %H:%M", "%d/%m/%Y %H:%M:%S", "%d/%m/%Y  %H:%M:%S"):
         try:
@@ -74,27 +79,34 @@ def parse_datetime(ts_str):
 # General-purpose processor for splitting files by date
 # -----------------------------------------------------------#
 def process_csv_by_date(input_path, output_prefix, headers, timestamp_index, row_processor):
+    # data_by_date: date (YYYYMMDD) -> list of the output rows of that date.
     data_by_date = defaultdict(list)
 
     if os.path.isfile(input_path):
         with open(input_path, newline='', encoding='utf-8') as csvfile:
             reader = csv.reader(csvfile)
+            # Skip the header row of the input.
             header = next(reader, None)
             print(f"[{output_prefix}] Header: {header}")
 
             for row in reader:
+                # A row with fewer fields than output columns is skipped.
                 if len(row) < len(headers):
                     continue
                 dt = parse_datetime(row[timestamp_index])
                 if not dt:
                     continue
+                # Date of the row -> which daily file; time of day -> Key.
                 date_key = dt.strftime("%Y%m%d")
                 formatted_ts = dt.strftime("%H:%M:%S")  # Only time portion
+                # row_processor builds the output row (Key + value columns) from the time and
+                # the original row.
                 processed_row = row_processor(formatted_ts, row)
                 data_by_date[date_key].append(processed_row)
 
         print(f"[{output_prefix}] Total unique dates: {len(data_by_date)}")
 
+        # One file per date, in date order: <prefix><id>_<YYYYMMDD>.csv, with header.
         for date_key in sorted(data_by_date.keys()):
             filename = f"{output_prefix}{id}_{date_key}.csv"
             path = os.path.join(fileToSave, filename)
@@ -109,6 +121,7 @@ def process_csv_by_date(input_path, output_prefix, headers, timestamp_index, row
 # -----------------------------------------------------------#
 # Process Glucose
 # -----------------------------------------------------------#
+# Glucose: Key, BGValue (column 1 of the input, mmol/L).
 process_csv_by_date(
     input_path=os.path.join(filetoread, f"UoMGlucose{id}.csv"),
     output_prefix="UoMGlucose",
@@ -127,6 +140,9 @@ process_csv_by_date(
 # keeps the 4 largest meals by CHO), so the carbs column is located by NAME and
 # the output always has the same two columns: Key, CHO.
 # carbs_g is found by name; the clinical files have no meal_type/tag columns.
+# Position of a column from its name, read from the header of the file
+# (utf-8-sig removes a byte-order mark that would change the first name).
+# Stops with a message if the column is not there.
 def column_index(path, name):
     with open(path, newline='', encoding='utf-8-sig') as f:
         header = [h.strip() for h in next(csv.reader(f))]
@@ -150,6 +166,7 @@ else:
 # -----------------------------------------------------------#
 # Process Bolus
 # -----------------------------------------------------------#
+# Bolus: Key, bolus_dose (column 1).
 process_csv_by_date(
     input_path=os.path.join(filetoread, f"UoMBolus{id}.csv"),
     output_prefix="UoMBolus",
@@ -161,6 +178,8 @@ process_csv_by_date(
 # -----------------------------------------------------------#
 # Process Basal
 # -----------------------------------------------------------#
+# Basal: Key, basal_dose (column 1) and insulin_kind (column 2: R = pump
+# rate, L = long-acting injection).
 process_csv_by_date(
     input_path=os.path.join(filetoread, f"UoMBasal{id}.csv"),
     output_prefix="UoMBasal",

@@ -66,6 +66,8 @@ import globals
 # -----------------------------------------------------------#
 # Configuration
 # -----------------------------------------------------------#
+# SOURCE: folder of the exports (CLINICAL_DATA overrides the default).
+# CONVERTED: where the files go without --to-raw, to check them first.
 SOURCE = os.environ.get("CLINICAL_DATA", f"{globals.ROOT}/Sleep XT files")
 CONVERTED = f"{globals.ROOT}/converted"
 
@@ -76,6 +78,8 @@ SECTIONS = {
     "Insulin_bolus": ("Bolus", ["bolus_ts", "bolus_dose"], 1),
     "Insulin_infusion": ("Basal", ["basal_ts", "basal_dose", "insulin_kind"], 2),
 }
+# A data row of the export: time stamp dd/mm/yyyy hh:mm, a tab, then the
+# value(s) separated by tabs.
 ROW = re.compile(r"^\s*(\d{2}/\d{2}/\d{4} \d{2}:\d{2})\t(.*)$")
 
 
@@ -83,6 +87,7 @@ ROW = re.compile(r"^\s*(\d{2}/\d{2}/\d{4} \d{2}:\d{2})\t(.*)$")
 # Helpers
 # -----------------------------------------------------------#
 def participant_id(path):
+    # 'man010' -> 'Mann10' (leading zeros dropped, two digits kept).
     m = re.search(r"man0*(\d+)", os.path.basename(path), re.IGNORECASE)
     return f"Mann{int(m.group(1)):02d}" if m else None
 
@@ -94,12 +99,16 @@ def parse(path):
     with open(path, encoding="utf-8", errors="replace") as f:
         for line in f:
             line = line.rstrip("\r\n")
+            # A line with '****' opens a section: its name is the text before the stars.
+            # Only the four sections in SECTIONS are read; any other one is skipped.
             if "****" in line:
                 name = line.split("*")[0].strip()
                 section = name if name in SECTIONS else None
                 continue
             if section is None:
                 continue
+            # Keep the time stamp and the first 'keep' value fields (2 for basal: the
+            # rate and the insulin kind).
             m = ROW.match(line)
             if m:
                 fields = [x.strip() for x in m.group(2).split("\t")]
@@ -115,6 +124,7 @@ def convert(path, dest_root):
         return None
     dest = os.path.join(dest_root, pid)
     os.makedirs(dest, exist_ok=True)
+    # One output file per section, named and laid out as in T1D-UOM.
     for section, rows in parse(path).items():
         kind, cols, _ = SECTIONS[section]
         df = pd.DataFrame(rows, columns=cols)
@@ -134,6 +144,7 @@ def compare(pid):
         if not os.path.isfile(b):
             res.append(f"{kind}: no file in raw/")
             continue
+        # Both files read as text and compared after removing spaces and blank rows.
         x = pd.read_csv(a, dtype=str).fillna("")
         y = pd.read_csv(b, dtype=str).fillna("")
         y.columns = [c.strip() for c in y.columns]
@@ -145,6 +156,7 @@ def compare(pid):
             res.append(f"{kind}: identical ({len(x)} rows)")
         else:
             res.append(f"{kind}: DIFFERENT ({len(x)} converted vs {len(y)} in raw)")
+            # If they differ, show up to 5 rows found only in each file.
             m = x.merge(y, how="outer", indicator=True)
             only_c = m[m._merge == "left_only"].drop(columns="_merge")
             only_r = m[m._merge == "right_only"].drop(columns="_merge")
@@ -166,6 +178,8 @@ files = sorted(glob.glob(os.path.join(SOURCE, "*.txt")))
 valid = re.compile(r"^xt_.*_man0*\d+_ol_sleep\.txt$", re.IGNORECASE)
 skipped = [f for f in files if not valid.match(os.path.basename(f))]
 files = [f for f in files if valid.match(os.path.basename(f))]
+# Group the exports by participant; a participant with more than one is
+# skipped, so the wrong export can never be used.
 by_id = {}
 for f in files:
     by_id.setdefault(participant_id(f), []).append(f)
@@ -174,10 +188,12 @@ for f in skipped:
     print(f"skipped (name not recognised): {f}")
 for k, v in dupes.items():
     print(f"skipped {k}: {len(v)} exports found, keep only one: {v}")
+# The usable exports: one per participant.
 files = [v[0] for k, v in by_id.items() if k not in dupes]
 if not files:
     sys.exit(f"No usable .txt files found in {SOURCE}")
 # --to-raw: write straight into raw/; otherwise into converted/ for checking.
+# raw_dir('x') is '<ROOT>/raw/x/'; removing 'x/' leaves '<ROOT>/raw/'.
 dest_root = globals.raw_dir("x")[:-2] if "--to-raw" in sys.argv else CONVERTED
 for f in files:
     pid = convert(f, dest_root)

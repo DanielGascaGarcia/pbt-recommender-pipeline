@@ -47,11 +47,14 @@ OUT = globals.path4
 
 
 def hour_minute(keys):
+    # Hour and minute from Key (HH:MM:SS).
     k = keys.astype(str).str.strip()
     return k.str[:2].astype(int), k.str[3:5].astype(int)
 
 
 def at_minute_59(f, col):
+    # Value of a column at minute :59 of each hour (where step 13 places its
+    # nodes); 24 values.
     d = pd.read_csv(f)
     key = next(c for c in d.columns if c.strip().lower() == "key")
     h, m = hour_minute(d[key])
@@ -61,6 +64,8 @@ def at_minute_59(f, col):
 
 def trimmed_hours(pid):
     """The rule of 13.InterpolationRChZenodo.py, replicated as in S.CurveAgreement.py."""
+    # Same loop as step 13 (four days, node at :59); P25-P75 over the non-green
+    # samples.
     data = pd.read_csv(os.path.join(globals.invivo_dir(pid), f"ComparisonJoinedNoActivity{pid}.csv"))
     vals, flags, hours = [], [], []
     j = 0
@@ -88,10 +93,13 @@ for pid in sorted(d for d in os.listdir(SIMS) if os.path.isdir(os.path.join(SIMS
     if not (os.path.isfile(f_orig) and os.path.isfile(f_guide)):
         print(f"[{pid}] InVivo files not found; skipped")
         continue
+    # original: hourly median change; guide: BGRChInt; trim: trimmed hours.
     orig = at_minute_59(f_orig, "MedRelChange").to_numpy(float)
     guide = at_minute_59(f_guide, "BGRChInt").to_numpy(float)
     trim = trimmed_hours(pid)
     has = ~np.isnan(orig) & ~np.isnan(guide)
+    # One row per hour with both values: |guide - original|, whether the guide is
+    # larger or smaller in magnitude, and whether the sign changed.
     for h in range(24):
         if has[h]:
             rows.append({"ID": pid, "hour": h, "trimmed": bool(trim[h]),
@@ -100,6 +108,8 @@ for pid in sorted(d for d in os.listdir(SIMS) if os.path.isdir(os.path.join(SIMS
                          "magnitude": ("larger" if abs(guide[h]) > abs(orig[h]) else
                                        "smaller" if abs(guide[h]) < abs(orig[h]) else "equal"),
                          "sign_changed": bool(np.sign(guide[h]) != np.sign(orig[h]) and orig[h] != 0)})
+    # Per participant: trimmed hours and mean |guide - original| in trimmed and
+    # kept hours.
     t = pd.DataFrame([r for r in rows if r["ID"] == pid])
     tr, kp = t[t.trimmed], t[~t.trimmed]
     parts.append({"ID": pid, "hours": len(t), "trimmed_hours": len(tr),
@@ -115,6 +125,7 @@ os.makedirs(OUT, exist_ok=True)
 h.round(4).to_csv(os.path.join(OUT, "TrimmingEffect_by_hour.csv"), index=False)
 p.round(4).to_csv(os.path.join(OUT, "TrimmingEffect_by_participant.csv"), index=False)
 if len(h):
+    # Cohort summary over all participant-hours.
     tr, kp = h[h.trimmed], h[~h.trimmed]
     s = {"participants": len(p), "hours": len(h), "trimmed_hours": len(tr),
          "mean_abs_diff_trimmed": tr.abs_diff.mean(), "median_abs_diff_trimmed": tr.abs_diff.median(),

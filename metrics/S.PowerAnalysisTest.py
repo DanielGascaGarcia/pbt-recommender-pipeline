@@ -58,12 +58,15 @@ TABLES = globals.path4
 
 def power_one_tailed(n, dz, alpha=ALPHA):
     """Power of a one-tailed paired t test (noncentral t), as in G*Power."""
+    # Power = P(t > critical t) under the noncentral t with noncentrality
+    # dz x sqrt(n).
     df = n - 1
     tcrit = stats.t.ppf(1 - alpha, df)
     return 1 - stats.nct.cdf(tcrit, df, dz * np.sqrt(n))
 
 
 def required_n(dz, alpha=ALPHA, power=POWER):
+    # Smallest n that reaches the power.
     n = 2
     while power_one_tailed(n, dz, alpha) < power:
         n += 1
@@ -74,6 +77,7 @@ m = pd.read_csv(os.path.join(TABLES, "metrics_by_participant.csv"), dtype={"ID":
 days = sorted(m["Day"].unique())
 rows = []
 for day in days:
+    # Per day: SD before and after of each participant; reduction = before - after.
     d = m[m["Day"] == day]
     before, after = d["STD_1_mmolL"].to_numpy(float), d["STD_2_mmolL"].to_numpy(float)
     red = before - after
@@ -85,7 +89,9 @@ for day in days:
                      "reduction_mean": red.mean(),
                      "participants_lower_SD": int((red > 0).sum())})
         continue
+    # Planned test: one-tailed paired t (H1: SD before > SD after).
     t = stats.ttest_rel(before, after, alternative="greater")
+    # 95% CI of the mean reduction (t distribution, n - 1 df).
     se = red.std(ddof=1) / np.sqrt(n)
     lo, hi = stats.t.interval(0.95, n - 1, loc=red.mean(), scale=se)
     rows.append({
@@ -154,6 +160,7 @@ with open(os.path.join(TABLES, "PowerTestDescriptives_table.tex"), "w", encoding
 print("Saved:", os.path.join(TABLES, "PowerTestDescriptives.csv"))
 print("Saved:", os.path.join(TABLES, "PowerTestDescriptives_table.tex"))
 
+# Printed summary: the power analysis, then one line per day.
 n_req = required_n(DZ)
 n_used = int(r["n"].max()) if len(r) else 0
 print(f"Power analysis: one-tailed paired t test, alpha={ALPHA}, power={POWER}, dz={DZ}")

@@ -54,19 +54,24 @@ import globals
 # -----------------------------------------------------------#
 # Configuration
 # -----------------------------------------------------------#
+# id: participant (PATIENT_ID).
 id = globals.id
 
+# Input and output folder: processed/<id>/ (the daily files of step 0).
 filetoread = globals.fileToSave;
 fileToSave = globals.fileToSave;
 
 # Days come from globals.day_split, shared with 5.MergeBGClean.
 # Analysis and reserved days come from globals.day_split, shared with 5.MergeBGClean.
 analysis_dates, reserved_dates = globals.day_split(id)
+# keep: the analysis dates, as a set.
 keep = set(analysis_dates)
 
 # -----------------------------------------------------------#
 # Collect BG files
 # -----------------------------------------------------------#
+# Daily glucose files of the participant, sorted by date, then only the
+# analysis days.
 filesBG = [
     file for file in os.listdir(filetoread)
     if file.startswith(f'UoMGlucose{id}_') and file.endswith('.csv')
@@ -75,6 +80,7 @@ filesBG.sort(key=lambda x: int(re.search(r'_(\d{8})', x).group(1)))
 filesBG = [f for f in filesBG if re.search(r'_(\d{8})', f).group(1) in keep]
 
 # Collect Bolus files
+# (listed but not used below)
 filesBolus = [
     file for file in os.listdir(filetoread)
     if file.startswith(f'UoMBolus{id}_') and file.endswith('.csv')
@@ -82,6 +88,7 @@ filesBolus = [
 filesBolus.sort(key=lambda x: int(re.search(r'_(\d{8})', x).group(1)))
 
 # Collect Meal files
+# Daily meal files, sorted by date.
 filesMeals = [
     file for file in os.listdir(filetoread)
     if file.startswith(f'UoMNutrition{id}_') and file.endswith('.csv')
@@ -91,6 +98,10 @@ filesMeals.sort(key=lambda x: int(re.search(r'_(\d{8})', x).group(1)))
 # -----------------------------------------------------------#
 # Main program - process each BG file (create processed with "_")
 # -----------------------------------------------------------#
+# Part 1: a working copy of each analysis day, _UoMGlucose<id>_<date>.csv,
+# with five columns:
+#   Key, BGValue (blanked later inside meal windows), Flag (0),
+#   ValueCh (0), BGValue2 (the original value, never blanked).
 for filename in filesBG:
     file_path = os.path.join(filetoread, filename)
     dataBG = pd.read_csv(file_path)
@@ -98,12 +109,14 @@ for filename in filesBG:
     out_file = os.path.join(filetoread, "_" + filename)
     with open(out_file, 'w') as fout:
         for l in range(len(dataBG)):
+            # Key rebuilt as a time to write it back as HH:MM:SS ([6:9] = the seconds).
             BGdt = datetime(2010, 12, 1,
                             int(dataBG["Key"][l][0:2]),
                             int(dataBG["Key"][l][3:5]),
                             int(dataBG["Key"][l][6:9]))
             fout.write(f"{BGdt.strftime('%H:%M:%S')},{dataBG['BGValue'][l]},0,0,{dataBG['BGValue'][l]}\n")
 
+    # Read the copy back (no header) and save it with its column names.
     df = pd.read_csv(out_file, header=None)
     df.rename(columns={0: 'Key', 1: 'BGValue', 2: 'Flag',
                        3: 'ValueCh', 4: 'BGValue2'}, inplace=True)
@@ -112,12 +125,14 @@ for filename in filesBG:
 # -----------------------------------------------------------#
 # Match BG with Meals (only top 4 meals)
 # -----------------------------------------------------------#
+# Part 2: remove the readings after the main meals of each analysis day.
 for bg_file in filesBG:
     match = re.search(r'_(\d{8})', bg_file)
     if not match:
         print(f"Could not extract date from BG filename: {bg_file}")
         continue
 
+    # Meal file of the same date; a day without one keeps all its readings.
     date_str = match.group(1)
     nutrition_filename = f'UoMNutrition{id}_{date_str}.csv'
 
@@ -136,6 +151,8 @@ for bg_file in filesBG:
     # The 4 largest meals by carbohydrate open a 6-h removal window each.
     dataMeal_top4 = dataMeal.sort_values(by="CHO", ascending=False).head(globals.N_MEALS).reset_index(drop=True)
 
+    # For each of those meals: window from the meal time (dtH1) to
+    # MEAL_WINDOW_HOURS (6 h) later (dtH2), on a fixed date.
     for k in range(len(dataMeal_top4)):
         time_str = str(dataMeal_top4["Key"][k]).strip()
         hour, minute, second = map(int, time_str.split(':'))
@@ -149,6 +166,8 @@ for bg_file in filesBG:
             dtH4 = dtH2
             print("Next day of:", bg_file)
 
+            # Working copy of the next calendar day (date + 1); it exists only if that
+            # day is an analysis day.
             current_date = datetime.strptime(date_str, "%Y%m%d")
             next_date = current_date + timedelta(days=1)
             next_date_str = next_date.strftime("%Y%m%d")
@@ -157,6 +176,8 @@ for bg_file in filesBG:
 
             if os.path.exists(next_day_path):
                 dataBG1 = pd.read_csv(next_day_path)
+                # Inside 00:00 -> end of the window: Flag 5, ValueCh = int(original value),
+                # BGValue blanked.
                 for l in range(len(dataBG1)):
                     BGdt = datetime(2010, 12, 1,
                                     int(dataBG1["Key"][l][0:2]),
@@ -170,6 +191,7 @@ for bg_file in filesBG:
             else:
                 print(f"Next day BG file not found: {next_day_bg_file}")
 
+            # For the same day, the window then ends at 23:59:59.
             dtH2 = datetime(2010, 12, 1, 23, 59, 59)
 
         # --- Same-day condition ---
@@ -185,4 +207,5 @@ for bg_file in filesBG:
                 dataBG_proc.loc[l, 'BGValue'] = np.nan
 
     # Save updated BG file (processed)
+    # Save the working copy of this day with its meal windows removed.
     dataBG_proc.to_csv(bg_proc_path, index=False)

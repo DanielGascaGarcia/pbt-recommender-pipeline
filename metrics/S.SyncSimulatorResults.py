@@ -41,6 +41,8 @@ import shutil
 
 import globals
 
+# RUNS: simulator_runs/ (archive, never modified); WORK: InSilico/simulations/
+# (working copy). Four scenarios per participant.
 RUNS, WORK = globals.simulator_runs_root(), globals.sims_root()
 SCENARIOS = [(d, a) for d in ("Day1", "Day2") for a in ("Before", "After")]
 
@@ -51,11 +53,15 @@ def load(path):
 
 
 ok, problems = 0, []
+# insilico must have run first: it rebuilds the working copy and writes the
+# scenario settings.
 if not os.path.isdir(WORK):
     raise SystemExit(f"No working simulations in {WORK}: run insilico first.")
 for pid in sorted(os.listdir(WORK)):
     for sim in sorted(os.listdir(os.path.join(WORK, pid))):
         for day, arm in SCENARIOS:
+            # work: where InSilico wrote the settings; kept: where the simulated result
+            # is archived.
             work = os.path.join(WORK, pid, sim, day, arm)
             kept = os.path.join(RUNS, pid, sim, day, arm)
             new_json = os.path.join(work, "simulation_settings.json")
@@ -63,18 +69,22 @@ for pid in sorted(os.listdir(WORK)):
                 problems.append(f"{pid} {day} {arm}: no settings written by insilico")
                 continue
             res, used_json = os.path.join(kept, "state_results.xlsx"), os.path.join(kept, "simulation_settings.json")
+            # Not simulated yet.
             if not os.path.isfile(res):
                 problems.append(f"{pid} {day} {arm}: not simulated yet -> simulate "
                                 f"{os.path.relpath(new_json, globals.ROOT)} and keep its "
                                 f"settings and state_results.xlsx in {os.path.relpath(kept, globals.ROOT)}")
                 continue
+            # A result without the settings it was simulated with cannot be checked.
             if not os.path.isfile(used_json):
                 problems.append(f"{pid} {day} {arm}: result kept without its simulation_settings.json; "
                                 f"add the settings it was simulated with")
                 continue
+            # Compared as JSON: same content, whatever the spacing or the key order.
             if load(used_json) != load(new_json):
                 problems.append(f"{pid} {day} {arm}: simulated with other settings -> simulate again")
                 continue
+            # Settings match: copy the result into the working copy.
             shutil.copy2(res, work)
             ok += 1
 

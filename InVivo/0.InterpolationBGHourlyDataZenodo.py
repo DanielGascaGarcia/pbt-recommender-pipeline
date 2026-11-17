@@ -34,6 +34,7 @@ Notes
     - The clip to 3-12 mmol/L flattens hours above 12 into plateaus.
 """
 
+# Imports (csv, plt, zscore and timedelta are not used).
 import warnings
 import datetime 
 import pandas as pd
@@ -45,12 +46,16 @@ import numpy as np
 import csv
 import globals
 from scipy.stats import zscore
+# id: participant (PATIENT_ID).
 id=globals.id;
 
 
+# path2: processed/<id>/. Input: the joined glucose of step 5 (meal windows
+# already removed, one column per analysis day). Output: the reference curve.
 path2 = globals.fileToSave
 fileToRead = "BGwNMLeftJoined" + str(id)
 fileToSave = "BGwNMLeftJoinedHourlyInterpolated" + str(id)
+# Silence pandas FutureWarnings, so the log stays readable.
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # Load data
@@ -60,18 +65,29 @@ data = pd.read_csv(f"{path2}{fileToRead}.csv")
 # as if it were one more day: in hours with 0-1 days of data it pushed the hourly
 # median above 30, so the hour was discarded and filled by interpolation.
 data = data[["Key"] + [c for c in data.columns if c.startswith("BGValue")]]
+# Fill gaps of up to 5 minutes in each day column (the minutes between CGM
+# readings, every 5 min), in both directions.
 data = data.interpolate(limit=5, limit_direction='both')
+# MedianBGValue: median across days, minute by minute (a day without a value
+# at that minute is left out).
 data["MedianBGValue"] = data.median(axis='columns', numeric_only=True)
 
 # Convert Key to datetime (with dummy date for proper resampling)
+# Key as a time on a fixed date (1 Jan 2023) and used as the index, so the
+# values can be grouped by hour.
 data['Key'] = pd.to_datetime(data['Key'], format='%H:%M:%S')
 data['Key'] = data['Key'].apply(lambda dt: dt.replace(year=2023, month=1, day=1))
 data.set_index('Key', inplace=True)
 
 # Get hourly median values (each labelled at the start of its hour)
+# resample('H') labels each hour with its START: the value of 00:00-00:59 sits
+# at 00:00. So the anchors of this curve are at :00 (the guide of step 13 puts
+# its hourly values at :59).
 hourly_median = data['MedianBGValue'].resample('H').median()
 
 # Replace clearly wrong values with 0 (e.g., values < 3 or > 30)
+# Hours with a median below 3 or above 30 mmol/L are set to 0 (and then to
+# NaN below); an hour with no data is already NaN.
 hourly_median_clean = hourly_median.copy()
 hourly_median_clean[(hourly_median_clean < 3) | (hourly_median_clean > 30)] = 0
 
@@ -80,9 +96,12 @@ hourly_median_clean[(hourly_median_clean < 3) | (hourly_median_clean > 30)] = 0
 hourly_median_interp = hourly_median_clean.replace(0, np.nan)
 
 # Step 4: Interpolate over NaNs using time-based interpolation
+# Fill those hours linearly in time from the neighbouring hours (at the ends,
+# with the nearest hour).
 hourly_median_interp = hourly_median_interp.interpolate(method='time', limit_direction='both')
 
 # Step 5 (Optional): Clip final result to medically safe range
+# Clip to 3-12 mmol/L.
 hourly_median_interp = hourly_median_interp.clip(lower=3, upper=12)
 
 # Print result to verify
@@ -91,10 +110,15 @@ hourly_median=hourly_median_interp
 
 
 # Manually set 24:00:00 = 00:00:00
+# Close the day: 24:00 (00:00 of the next day) takes the value of 00:00, so
+# the curve ends where it starts. 25 anchors in total.
 value_0000 = hourly_median.loc[hourly_median.index.time == pd.to_datetime('00:00:00').time()].iloc[0]
 hourly_median.loc[pd.to_datetime('2023-01-02 00:00:00')] = value_0000
 
 # Create full 1-minute time index from 00:00 to 24:00
+# Minute grid from 00:00 to 24:00 (1,441 minutes). The 25 hourly anchors are
+# placed on it and the minutes in between are filled by a cubic polynomial
+# interpolation.
 full_index = pd.date_range(start='2023-01-01 00:00:00', end='2023-01-02 00:00:00', freq='T')
 interp_df = pd.DataFrame(index=full_index)
 interp_df['MedianBGValue'] = hourly_median.reindex(full_index)
@@ -103,6 +127,7 @@ interp_df['MedianBGValue'] = interp_df['MedianBGValue'].interpolate(method='poly
 
 
 # Format output
+# Key back to HH:MM:SS text.
 interp_df = interp_df.reset_index()
 interp_df.columns = ['Key', 'MedianBGValue']
 interp_df['Key'] = interp_df['Key'].dt.strftime('%H:%M:%S')

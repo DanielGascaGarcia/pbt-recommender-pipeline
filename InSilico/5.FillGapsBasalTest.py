@@ -35,11 +35,18 @@ id=globals.id;
 
 # Same folder where 0.GeneratorExamplesPy-mgipsimForEGPtest.py writes
 # BasalLeftJoined<id2>.csv.
+# path2: processed/<id>/ of the participant.
 path2=globals.fileToSave;
 fileToRead="BasalLeftJoined"+str(id2)+".csv";
 fileToSave="BasalImputed"+str(id2)+".csv";
 
+# index_col=0: Key becomes the index, so the only column left is the rate.
 data= pd.read_csv(str(path2)+fileToRead, index_col=0);
+# Empty cells -> NaN, filled with the previous value (ffill) and, at the
+# start of the day, with the next one (bfill).
 df=data.replace('',float('NaN')).ffill().bfill();
+# Mode across the columns of each minute (one column here, so the value
+# itself; [0] = first mode), x 60: from U/min (step 0) back to U/h.
 df["ModeBasalValue"]=60*df.mode(axis='columns',numeric_only=True)[0];
+# Saved with the index, so Key is again the first column.
 df.to_csv(str(path2)+str(fileToSave));

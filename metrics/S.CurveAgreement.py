@@ -36,7 +36,9 @@ Outputs (in results/metrics/tables/)
     CurveAgreement_by_participant.csv
     CurveAgreement_summary.csv
     CurveAgreement_by_hour.csv          one row per participant-hour, with reliability
-    CurveAgreement_by_reliability.csv   |difference| by reliability level
+    CurveAgreement_by_reliability.csv   |difference| between the centred curves by
+                                        reliability level: hours, and mean and median
+                                        with each centring (all hours; high-reliability hours)
 
 Notes
     - r without grey and trimmed hours (r_clean) is the shape measure of the
@@ -72,10 +74,13 @@ def reference_hourly(pid):
     if not os.path.isfile(f):
         return None, None
     d = pd.read_csv(f)
+    # Key column and the numeric value column (the median curve), whatever its
+    # exact name.
     key = next(c for c in d.columns if c.strip().lower() == "key")
     num = [c for c in d.columns if c != key and not c.lower().startswith("unnamed")
            and pd.api.types.is_numeric_dtype(d[c])]
     col = next((c for c in num if "med" in c.lower()), num[-1])
+    # Hourly mean of the minute values (24 values); to mmol/L if stored in mg/dL.
     hour = d[key].astype(str).str.strip().str[:2].astype(int)
     h = d.groupby(hour)[col].mean().reindex(range(24))
     if h.median() > 30:                     # stored in mg/dL
@@ -105,6 +110,7 @@ def trimmed_hours(pid):
     if not os.path.isfile(f):
         return np.zeros(24, bool)
     data = pd.read_csv(f)
+    # Same loop as step 13: the node at minute :59 of every hour over four days.
     vals, flags, hours = [], [], []
     j = 0
     for _ in range(4 * 1440):
@@ -130,18 +136,22 @@ def simulated_hourly(pid):
     f = glob.glob(os.path.join(SIMS, pid, "Simulation_*", "state_results.xlsx"))
     if len(f) != 1:
         return None
+    # Hourly mean of the simulated IG over the first day.
     ig = pd.read_excel(f[0], sheet_name="Patient_0")["IG (mmol/L)"].to_numpy()[:1440]
     return np.array([ig[h * 60:(h + 1) * 60].mean() for h in range(24)])
 
 
 rows, hours = [], []
 LEVEL = {3: "high", 2: "medium", 1: "low", 0: "no data"}
+# One row per participant that has both a reference and a basal-only run.
 for pid in sorted(d for d in os.listdir(SIMS) if os.path.isdir(os.path.join(SIMS, d))):
     ref, col = reference_hourly(pid)
     sim = simulated_hourly(pid)
     if ref is None or sim is None:
         print(f"[{pid}] reference or basal-only simulation not found; skipped")
         continue
+    # ok: hours where both curves have a value. a, b: reference and simulation on
+    # those hours; rc, sc: each centred on its own mean.
     ok = ~np.isnan(ref) & ~np.isnan(sim)
     a, b = ref[ok], sim[ok]
     rc, sc = a - a.mean(), b - b.mean()
@@ -156,6 +166,7 @@ for pid in sorted(d for d in os.listdir(SIMS) if os.path.isdir(os.path.join(SIMS
     else:
         rg, sg = rc, sc
         centring_hr = "all_hours_fallback"
+    # Without the trimmed hours: r and centred MAE over the kept hours.
     outl = trimmed_hours(pid)[ok]
     keep = ~outl
     a2, b2 = a[keep], b[keep]
@@ -166,12 +177,14 @@ for pid in sorted(d for d in os.listdir(SIMS) if os.path.isdir(os.path.join(SIMS
     grey = (rel == 0)[ok] if rel is not None else np.zeros(int(ok.sum()), bool)
     target = keep & ~grey
     r_t = np.corrcoef(a[target], b[target])[0, 1] if target.sum() > 2 else np.nan
+    # One row per participant-hour (for the tables by hour and by reliability).
     if rel is not None:
         for h, dr, ds, gr, gs in zip(np.arange(24)[ok], rc, sc, rg, sg):
             hours.append({"ID": pid, "hour": int(h), "reliability": LEVEL[int(rel[h])],
                           "trimmed_hour": bool(trimmed_hours(pid)[h]),
                           "abs_diff_centred_mmolL": abs(dr - ds),
                           "abs_diff_centred_high_rel_mmolL": abs(gr - gs)})
+    # One row per participant: every measure described in the header.
     rows.append({"ID": pid, "hours": int(ok.sum()), "reference_column": col,
                  "r": np.corrcoef(a, b)[0, 1],
                  "MAE_centred_mmolL": np.abs(rc - sc).mean(),
@@ -188,6 +201,7 @@ for pid in sorted(d for d in os.listdir(SIMS) if os.path.isdir(os.path.join(SIMS
                  "r_without_grey_and_trimmed_hours": r_t,
                  "MAE_centred_without_trimmed_hours_mmolL": mae_k})
 
+# Save the table by participant, then the cohort summary.
 t = pd.DataFrame(rows)
 t.round(3).to_csv(os.path.join(OUT, "CurveAgreement_by_participant.csv"), index=False)
 if len(t):
@@ -197,23 +211,39 @@ if len(t):
          "MAE_centred_max_mmolL": t.MAE_centred_mmolL.max(),
          "MAE_centred_high_rel_median_mmolL": t.MAE_centred_high_rel_mmolL.median(),
          "MAE_centred_high_rel_max_mmolL": t.MAE_centred_high_rel_mmolL.max(),
+         # Second value of the criterion (centred |difference| in high-reliability
+         # hours), quoted in the manuscript: median, maximum and who has the maximum.
+         "MAE_in_high_rel_hours_median_mmolL": t.MAE_centred_high_rel_in_high_rel_hours_mmolL.median(),
+         "MAE_in_high_rel_hours_max_mmolL": t.MAE_centred_high_rel_in_high_rel_hours_mmolL.max(),
+         "MAE_in_high_rel_hours_max_ID": t.loc[t.MAE_centred_high_rel_in_high_rel_hours_mmolL.idxmax(), "ID"],
          "offset_median_mmolL": t.offset_mmolL.median(),
          "r_without_trimmed_hours_median": t.r_without_trimmed_hours.median(),
          "r_without_trimmed_hours_min": t.r_without_trimmed_hours.min(),
          "r_without_grey_and_trimmed_hours_median": t.r_without_grey_and_trimmed_hours.median(),
          "r_without_grey_and_trimmed_hours_min": t.r_without_grey_and_trimmed_hours.min(),
+         "r_without_grey_and_trimmed_hours_max": t.r_without_grey_and_trimmed_hours.max(),
          "MAE_centred_without_trimmed_hours_median_mmolL": t.MAE_centred_without_trimmed_hours_mmolL.median()}
     pd.DataFrame([s]).round(3).to_csv(os.path.join(OUT, "CurveAgreement_summary.csv"), index=False)
     print(t.round(3).to_string(index=False))
     if hours:
         hrs = pd.DataFrame(hours)
         hrs.round(3).to_csv(os.path.join(OUT, "CurveAgreement_by_hour.csv"), index=False)
+        # Table by reliability: hours, and mean and median |difference| with each
+        # centring, under a single header row.
         order = ["high", "medium", "low", "no data"]
-        rel_tab = (hrs.groupby("reliability")[["abs_diff_centred_mmolL", "abs_diff_centred_high_rel_mmolL"]]
-                   .agg(["size", "mean", "median"]).reindex(order).dropna(how="all"))
+        g = hrs.groupby("reliability")
+        rel_tab = pd.DataFrame({
+            "hours": g.size(),
+            "centred_all_hours_mean_mmolL": g["abs_diff_centred_mmolL"].mean(),
+            "centred_all_hours_median_mmolL": g["abs_diff_centred_mmolL"].median(),
+            "centred_high_rel_mean_mmolL": g["abs_diff_centred_high_rel_mmolL"].mean(),
+            "centred_high_rel_median_mmolL": g["abs_diff_centred_high_rel_mmolL"].median(),
+        }).reindex(order).dropna(how="all")
+        rel_tab.index.name = "reliability"
+        rel_tab["hours"] = rel_tab["hours"].astype(int)
         rel_tab.round(3).to_csv(os.path.join(OUT, "CurveAgreement_by_reliability.csv"))
         print("\nAbsolute difference of the centred curves by reliability (mmol/L):")
         print(rel_tab.round(3).to_string())
     print()
     for k, v in s.items():
-        print(f"{k:28} {round(v, 3)}")
+        print(f"{k:28} {round(v, 3) if isinstance(v, float) else v}")   # the ID is text

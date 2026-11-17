@@ -37,6 +37,7 @@ import globals
 # Parameters
 
 # Parameters
+# filesBG: the per-day simulated glucose files BG<id2>_<k>.csv (step 0).
 filesBG=[];
 
 
@@ -46,24 +47,34 @@ id=globals.id;
 
 
 
+# path2: processed/<id>/ of the participant; fileToSave: name of the output.
 path2=globals.fileToSave;
 fileToSave="BGwNMLeftJoined"+str(id2)+".csv";
 
 
+# Find every BG<id2>_<k>.csv. The '_' after id2 keeps out the other files
+# that start with BG.
 for file in os.listdir(path2):
     if file.startswith('BG'+str(id2) + '_'): 
         filesBG.append(file);
+# Sort by the day number k as a number (so _10 comes after _9, not after _1).
 filesBG.sort(key=lambda x: int(re.search(r'_(\d+)', x).group(1)))
 print(filesBG)
 
 
 # reading two csv files
+# data1: the minute grid (Key) of step 3.
+# data2: the first day, its BGValue renamed BGValue0.
 data1 = pd.read_csv(str(path2)+'PivotBG_wCN'+'.csv')
 data2 = pd.read_csv(str(path2)+filesBG[0],usecols = ['Key','BGValue']);
 data2.rename(columns = {'BGValue':'BGValue'+str(0)}, inplace = True);
+# Remove spaces around Key, so the times match exactly.
 data1['Key']=data1['Key'].str.strip();
 data2['Key']=data2['Key'].str.strip();
+# Left join: every minute of the grid is kept (a minute without a value
+# would be NaN; the simulation has one every minute).
 output1 = pd.merge(data1,data2,suffixes=('',''),on='Key',how='left');
+# The remaining days, one column each: BGValue1, BGValue2, ...
 for j in range(len(filesBG)-1):
         data3 = pd.read_csv(str(path2)+filesBG[j+1],usecols = ['Key','BGValue']);
         data3.rename(columns = {'BGValue':'BGValue'+str(j+1)}, inplace = True);
