@@ -79,7 +79,7 @@ The pipeline runs four modules, in this order:
 Py‑mgipsim (`pairs.csv`).
 
 - **T1D‑UOM** (2301, 2304, 2307, 2308, 2309) — public dataset on Zenodo, V1.0.4 (CC BY 4.0). Downloaded automatically by `data/S.GetZenodoData.py`.
-- **Clinical** (Mann01–Mann12) — sensor‑augmented pump (open‑loop) period of a randomised crossover trial. Available on reasonable request from the authors of that study; not redistributed here. Converted by `data/S.ConvertClinicalData.py` once the exports are available.
+- **Clinical** (Mann01–Mann12) — sensor‑augmented pump (open‑loop) period of a randomised crossover trial in older adults with type 1 diabetes (Boughton et al., *Lancet Healthy Longev* 2022, doi:10.1016/S2666-7568(22)00005-8; Thabit et al., *Diabetes Obes Metab* 2023, doi:10.1111/dom.14914). Available on reasonable request from the corresponding authors of that study; not redistributed here. With the exports (one `xt_…_man0NN_ol_sleep.txt` per participant) in `Sleep XT files/` in the project root, `data/S.ConvertClinicalData.py` converts them to the input format (see [`docs/NOTES.md`](docs/NOTES.md)).
 
 The simulator inputs and outputs of all 17 participants are included in
 `simulator_runs/`, so the metrics can be recomputed without running the
