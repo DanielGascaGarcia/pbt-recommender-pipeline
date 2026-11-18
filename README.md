@@ -97,6 +97,9 @@ JSON files.
 - **Pipeline** — Python 3.9.12; runs data, InVivo, InSilico and metrics.
 - **Simulator** — Python 3.12; runs [Py‑mgipsim](https://github.com/illinoistech-itm/py-mgipsim).
 
+Both environments were created and tested with conda (Anaconda/Miniconda), as
+below; other environment managers were not used.
+
 ```bash
 # Pipeline
 conda create -n pbt_test python=3.9.12
