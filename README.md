@@ -28,13 +28,16 @@ of the article.
 
 ## Quick start
 
-Run the whole pipeline on the demo participant (public data, no simulator
-needed):
+Run the whole pipeline on the demo participant (public data; the simulator is
+not run, but its virtual-patient files are read, so Py‑mgipsim is cloned at the
+version used in the paper):
 
 ```bash
 conda create -n pbt_test python=3.9.12
 conda activate pbt_test
 pip install -r requirements.txt
+git clone https://github.com/illinoistech-itm/py-mgipsim.git
+git -C py-mgipsim checkout b985f8c2ea385d1b2b8480957b730866e07772f1
 python 17.ScriptforTestExperiment3.py demo
 ```
 
@@ -80,7 +83,9 @@ Py‑mgipsim (`pairs.csv`).
 
 The simulator inputs and outputs of all 17 participants are included in
 `simulator_runs/`, so the metrics can be recomputed without running the
-simulator.
+simulator. InVivo and InSilico read the virtual-patient files of Py‑mgipsim
+(daily basal and correction factor), so it must be cloned at the version given
+in Installation even when the simulator is not run.
 
 ---
 
@@ -103,9 +108,17 @@ conda create -n mgipsim python=3.12
 conda activate mgipsim
 git clone https://github.com/illinoistech-itm/py-mgipsim.git
 cd py-mgipsim
+git checkout b985f8c2ea385d1b2b8480957b730866e07772f1   # version used in the paper
 pip install -r requirements.txt
 ```
 
+> The results were produced with Py‑mgipsim at commit `b985f8c` (25 February
+> 2026). The checkout above fixes that version: the virtual‑patient parameters
+> read by the pipeline (daily basal for the matching, correction factor for the
+> recommendation) come from its patient files. The only local change was
+> `save_directory` in `pymgipsim/Settings/DefaultSettings/scenario_default.json`
+> (where the simulator saves its results); it does not affect the simulations.
+>
 > The scripts read the virtual‑patient files from `py-mgipsim/` in the project
 > root. If Py‑mgipsim is installed elsewhere, set `PYMGIPSIM_PATIENTS` to its
 > `pymgipsim/VirtualPatient/Models/T1DM/ExtHovorka/Patients/` folder.
@@ -143,7 +156,9 @@ modifies. Details: [`docs/NOTES.md`](docs/NOTES.md#b-insilico-basal-recommendati
 participant of the article, with its simulator runs included.
 
 - Inputs are read from `sample_data/`; every output goes to `demo_output/`.
-- Neither the clinical data nor the simulator are needed.
+- The clinical data are not needed, and the simulator is not run: only its
+  virtual-patient files are read (Py‑mgipsim cloned in the project root; see
+  Installation).
 - The files of a full run are never touched.
 - The demo's tables and figures for 2308 match those of the full run.
 
