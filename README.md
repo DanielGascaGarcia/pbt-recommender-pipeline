@@ -193,6 +193,12 @@ Tables go to `results/<module>/tables/` and figures to
 `results/<module>/figures/`. The code writes every table it computes; the
 article reports a selection.
 
+The recommended basal profile of each participant is written by InSilico step
+14 to `InSilico/processed/<id>/SampledAdvised<id2>_final.csv` (column
+`AdjustedRecIns`, U/h), and archived in
+`simulator_runs/<id>/Simulation_<id2>/Day*/After/simulation_settings.json`
+(`inputs` > `basal_insulin`).
+
 ### Reported in the article
 
 - **`invivo/tables/Table1_basal_matching.csv`** — daily basal and bolus of each participant and the virtual patient matched (Table 1).
