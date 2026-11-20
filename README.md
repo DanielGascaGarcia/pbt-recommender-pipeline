@@ -143,9 +143,30 @@ python 17.ScriptforTestExperiment3.py insilico Mann01 2308  # one module, some p
 python 17.ScriptforTestExperiment3.py metrics
 ```
 
+### Full run (with the original data)
+
+1. Put the twelve clinical exports (`xt_…_man0NN_ol_sleep.txt`) in a folder
+   named `Sleep XT files/` in the project root (see [Data](#data)). The five
+   T1D‑UOM participants are downloaded from Zenodo by the `data` stage.
+2. Run the four modules in order:
+
+   ```bash
+   python 17.ScriptforTestExperiment3.py data
+   python 17.ScriptforTestExperiment3.py invivo
+   python 17.ScriptforTestExperiment3.py insilico
+   python 17.ScriptforTestExperiment3.py metrics
+   ```
+
+The simulator results of all participants are already in `simulator_runs/`,
+so this run reproduces every table and figure without running the simulator.
+To check it, copy `results/` before the run (e.g. to `results_github/`) and
+compare afterwards: `python compare_results.py results_github results`.
+The simulator is only needed to simulate again (next section).
+
 ### Simulator steps
 
-Two steps are run in the simulator environment, between modules:
+To simulate again instead of using `simulator_runs/`, two steps are run in the
+simulator environment, between modules:
 
 1. **Before InSilico** — the basal‑only simulation of each participant.
 2. **Before metrics** — the four scenarios of each participant (two days, before and after).
