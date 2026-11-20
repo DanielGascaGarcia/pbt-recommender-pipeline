@@ -21,14 +21,8 @@ is produced from the original data exports by the code.
     that repeat a time stamp, and bolus records that repeat the previous bolus
     within 15 minutes. Originals are kept, with a log.
   - `S.CheckRawData.py`: format and range report of the input files.
-- The InVivo orchestrator no longer fetches data; it checks that `raw/` is
-  ready.
-- The InSilico orchestrator cleans `processed/{id}/` before each participant,
-  as InVivo does; metrics empties `results/metrics/` before each run.
-- `data` and `metrics` write a log of each run to their own `logs/`.
 - Simulator files are kept in `simulator_runs/`, which the pipeline never
-  modifies; `InSilico/simulations/` becomes a working copy rebuilt on every run
-  (`InSilico/S.ExportSimulatorRuns.py` converts the earlier layout once).
+  modifies; `InSilico/simulations/` becomes a working copy rebuilt on every run.
   The first step of metrics, `S.SyncSimulatorResults.py`, uses a scenario
   result only when the settings it was simulated with match those of the
   current run.
@@ -108,7 +102,6 @@ is produced from the original data exports by the code.
   once scaled to the text width; the two days share the same axis limits; the
   hourly figures label their panels (a), (b), (c), and their percentage axis
   ends at 100%. The values drawn do not change.
-- Launcher: the demo is also an option of the menu.
 - `S.PowerAnalysisTest.py` skips the test with fewer than 3 participants (as in
   the demo) and reports only the SDs; it also writes mean (SD), median (Q1–Q3)
   and range of the variables of the test, for the data appendix of the thesis
@@ -122,22 +115,10 @@ is produced from the original data exports by the code.
   `globals.py`; the Zenodo record of the dataset, `ZENODO_RECORD`, is also set
   there, together with the locations of the simulator runs and the working
   simulations (`simulator_runs_root`, `sims_root`), which every module uses.
-- `S.CleanRawData.py` recognises new input files and cleans them instead of
-  reusing earlier originals.
-- `globals.py` creates `processed/` only in InVivo and InSilico, and recognises
-  the module folder regardless of the letter case of the path.
 
 - Code documentation: every script has a header in the format of the papers 1
   and 2 packages (what it does, inputs, outputs, notes, usage) and comments in
-  English. The `main()` functions and `if __name__ == "__main__"` blocks were
-  removed, so every script runs top to bottom as the rest of the pipeline; the
-  executed program is unchanged (checked on the syntax tree of each script).
-- Removed: old copies no longer used (`InVivo/14.SimulationBolusCHOPy-mgipsimZenodo.py`,
-  `InVivo/S.GetZenodoData.py`, `InVivo/S.GetClinicalData.py`,
-  `InVivo/S.ArrangeZenodoData.py`, `data/S.BuildSampleData.py`), and checks
-  that depended on local paths of the author (`InVivo/check_reserved_days.py`,
-  `InVivo/S.VerifyAgainstOriginal.py`, `metrics/S.CurveShape.py`,
-  `metrics/S.ReferenceIndexCheck.py`).
+  English.
 
 ## Reproducibility
 
