@@ -33,42 +33,28 @@ is produced from the original data exports by the code.
 
 ## Changes that affect reported values
 
+Compared with v1.0.2:
+
 - Timing of the recommended corrections (`14.SimulationBolusCHOPy-mgipsimTest.py`):
-  each correction was sized assuming delivery 2 h before the deviation but was
-  placed in the hour of the deviation; it is now placed 2 h earlier
-  (`LEAD_HOURS = 2`), consistently with how it is sized.
-- Rates bounded at zero: when a recommended reduction was larger than the rate,
-  the remaining reduction was added 2 h earlier; it is now subtracted there,
-  bounded at zero.
+  each correction is placed 2 h before the deviation it corrects
+  (`LEAD_HOURS = 2`), the same lead used to size it.
+- Rates bounded at zero: a recommended reduction larger than the rate is
+  subtracted 2 h earlier, bounded at zero.
 - Matching: participant 2301 is paired with the virtual patient selected by the
   daily basal rule (Patient_5).
-- Reference curve (`0.InterpolationBGHourlyDataZenodo.py`): the column of the
-  saved index (`Unnamed: 0`) entered the across‑day median as if it were one
-  more day. In hours with data on 0–1 days the median exceeded 30, was
-  discarded and was filled by interpolation, so the reference curve was
-  smoothed there. Only the `BGValue*` day columns are now used. This changes
-  the reference curve and its agreement with the basal‑only simulation; it
-  does not change the recommendation, the guide curve or any before/after
-  result.
-- Simulator inputs: the basal‑only inputs of nine participants were rebuilt so
-  that every participant meets the same operational criterion of agreement
-  with its reconstructed curve: Pearson r ≥ 0.5 over the hours the guide keeps
-  (hours with BG data that were not set aside when the guide was built), and a
-  centred mean absolute difference below 1 mmol/L in high‑reliability hours.
-  Five (2301, Man06, Man07, Man11, 2307) were rebuilt first; four more (Man01,
-  Man02, Man09, Man10) after the reference curve was corrected. The input of
-  Man07, which met the criterion with the largest difference in
-  high‑reliability hours (0.87 mmol/L), was then refined further (0.45 mmol/L;
-  r 0.68); the results use the refined input. The 68 scenarios were
-  simulated again with the final inputs.
-
+- Reference curve (`0.InterpolationBGHourlyDataZenodo.py`): the across‑day
+  median uses only the `BGValue*` day columns. This affects the reference curve
+  and its agreement with the basal‑only simulation, not the recommendation, the
+  guide curve or any before/after result.
+- Simulator inputs: the basal‑only input of every participant meets one
+  operational criterion of agreement with its reconstructed curve: Pearson
+  r ≥ 0.5 over the hours the guide keeps (hours with BG data not set aside when
+  the guide was built), and a centred mean absolute difference below 1 mmol/L
+  in high‑reliability hours. The 68 scenarios were simulated with these inputs.
 - Table 1: the daily basal and bolus of every participant are computed by
-  `S.BasalMatching.py` (median of the daily totals), which now also reports
-  the daily bolus.
+  `S.BasalMatching.py` (median of the daily totals).
 - `9.BoxplotZenodo.py` includes every analysis day in the hourly medians of the
-  guide curve (the largest change in any hourly median is below 0.3 mmol/L, and
-  no reliability flag changes). `9.BoxplotTest.py` uses the same rule; with the
-  single simulated day its output is unchanged.
+  guide curve; `9.BoxplotTest.py` uses the same rule.
 
 ## New outputs
 
@@ -92,9 +78,9 @@ is produced from the original data exports by the code.
 - `metrics/S.InputDescriptives.py`: CGM coverage of the analysis days per
   participant, for the data appendix of the thesis chapter, also as a LaTeX
   table.
-- Figure 1 of the manuscript: `InVivo/12.MergeRChBasalNoActZenodo.py` now saves
+- Figure 1 of the manuscript: `InVivo/12.MergeRChBasalNoActZenodo.py` saves
   the figure of the illustrative participant (`ILLUSTRATIVE_ID`, 2308) to
-  `results/invivo/figures/`; it was previously only shown on screen.
+  `results/invivo/figures/`.
 
 ## Other changes
 
