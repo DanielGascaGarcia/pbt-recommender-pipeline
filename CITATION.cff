@@ -1,11 +1,11 @@
 cff-version: 1.2.0
 message: "If you use this deposit, please cite as below."
-title: "Personalised Basal Tuner - Experiment 3 (Recommender Evaluation, In Silico)"
+title: "PBT — Paper 3 Pipeline (Recommender, In Silico)"
 authors:
   - family-names: "Gasca Garcia"
     given-names: "Daniel"
     email: "daniel.gascagarcia@manchester.ac.uk"
-    affiliation: "University of Manchester"
+    affiliation: "Department of Computer Science, The University of Manchester"
 keywords:
   - "Type 1 Diabetes"
   - "Basal insulin"
@@ -14,5 +14,7 @@ keywords:
   - "Recommender system"
   - "In silico"
 license: "MIT"
+repository-code: "https://github.com/DanielGascaGarcia/pbt-recommender-pipeline"
 version: "2.0.0"
-date-released: "2026-11-11"
+doi: "10.5281/zenodo.17410200"
+date-released: "2026-11-20"

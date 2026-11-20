@@ -159,6 +159,10 @@ modifies. Details: [`docs/NOTES.md`](docs/NOTES.md#b-insilico-basal-recommendati
 participant of the article, with its simulator runs included.
 
 - Inputs are read from `sample_data/`; every output goes to `demo_output/`.
+- In demo mode the data stage runs `S.GenerateSampleData.py`, which rebuilds
+  `sample_data/` from a full run when one is present (otherwise the shipped
+  `sample_data/` is used), and `S.PrepareDemo.py`, which places the demo's
+  simulator runs where InSilico and metrics read them.
 - The clinical data are not needed, and the simulator is not run: only its
   virtual-patient files are read (Py‑mgipsim cloned in the project root; see
   Installation).
@@ -224,7 +228,8 @@ The recommended basal profile of each participant is written by InSilico step
 - **`metrics/tables/CurveAgreement_by_hour.csv`, `CurveAgreement_by_reliability.csv`** — curve agreement by hour and by reliability level.
 - **`metrics/tables/TrimmingEffect_by_hour.csv`, `TrimmingEffect_by_participant.csv`** — effect of the trimming, in detail.
 - **`metrics/tables/hourly_mean_and_std_<id>_Day<n>.csv`, `Day1.csv`, `Day2.csv`** — hourly values behind the evaluation figures.
-- **`metrics/figures/CurveCheck_<id>.png`, `Scenarios_<id>.png`** — per‑participant checks.
+- **`metrics/figures/CurveCheck_<id>.png`, `Scenarios_<id>.png`** — per‑participant checks: input curve against the reference (`G.CurveCheck.py`), and simulated glucose before and after with meals and basal profile (`G.ScenarioPlot.py`).
+- **`metrics/figures/TrimmingEffect_cohort.png`, `TrimmingEffect_<id>.png`** — effect of the trimming on the guide: every participant-hour, and one participant over 24 h (`G.TrimmingEffect.py`).
 
 ### Figure map
 
@@ -248,8 +253,8 @@ repository runs as cloned.
 - **`ZENODO_RECORD`** — Zenodo record of the T1D‑UOM version used (V1.0.4).
 - **`MAX_ANALYSIS_DAYS`, `RESERVED_DAYS`** — 45 analysis days and 2 evaluation days.
 - **`N_MEALS`, `MEAL_WINDOW_HOURS`** — the 4 largest meals per day, and the 6‑h window removed after each.
-- **`LEAD_HOURS`, `NEGATIVE_RATE_SHIFT_MIN`** — placement of each basal correction (2 h before), and handling of reductions larger than the rate.
-- **`MIN_HIGH_REL_HOURS`** — minimum high‑reliability hours to centre the curves in the agreement check.
+- **`LEAD_HOURS`, `NEGATIVE_RATE_SHIFT_MIN`** — placement of each basal correction (2 h before), and handling of reductions larger than the rate (subtracted 120 min earlier, never below 0).
+- **`MIN_HIGH_REL_HOURS`** — minimum high‑reliability hours (6) to centre the curves in the agreement check.
 - **`ILLUSTRATIVE_ID`** — participant of the illustrative figures (2308).
 - **`MGDL_PER_MMOL`** — unit conversion factor (18.0182).
 - **`FIGURE_TITLES`** — `False` for submission figures; `True` to render titles for local review.
@@ -312,15 +317,15 @@ python compare_results.py results_before results
 **Software** (concept DOI: always resolves to the latest version; see `CITATION.cff`)
 
 > Gasca García D. *PBT — Paper 3 Pipeline* [Computer software]. Zenodo.
-> doi:CONCEPT_DOI
+> doi:10.5281/zenodo.17410200
 
 ```bibtex
 @software{gasca_garcia_pbt_paper3,
   author  = {Gasca García, Daniel},
   title   = {PBT — Paper 3 Pipeline},
   year    = {2026},
-  doi     = {CONCEPT_DOI},
-  url     = {https://doi.org/CONCEPT_DOI}
+  doi     = {10.5281/zenodo.17410200},
+  url     = {https://doi.org/10.5281/zenodo.17410200}
 }
 ```
 

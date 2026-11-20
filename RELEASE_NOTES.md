@@ -1,7 +1,7 @@
 # Release notes — PBT, Paper 3 Pipeline
 
 DOI (this version): assigned on publication.
-Previous version: v1.0.0 (doi: 10.5281/zenodo.17467828).
+Previous version: PBT_recommender_v1.0.2 (doi: 10.5281/zenodo.18509612).
 
 This release reorganises the code and adds the steps that prepare the input
 data, so that every table and figure of the current version of the manuscript
@@ -143,7 +143,12 @@ is produced from the original data exports by the code.
 
 Every module starts from a clean state. A full run (`data`, `invivo`,
 `insilico`, `metrics`) reproduces the tables of the manuscript; two runs give
-identical tables.
+identical tables. A run from a fresh clone, in a new environment, reproduced
+all 57 tables of `results/`.
+
+Py‑mgipsim version used for the results: commit `b985f8c` (25 February 2026),
+pinned in the README; its virtual‑patient files give the daily basal used for
+the matching and the correction factor used for the recommendation.
 
 ## License
 
