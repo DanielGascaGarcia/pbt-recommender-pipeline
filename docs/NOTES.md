@@ -184,7 +184,7 @@ simulations kept in the earlier layout (inside `InSilico/simulations/`).
   excluded or come from days without meal records (Methods and Limitations).
 - `S.InputDescriptives.py` — for the data appendix of the thesis chapter: CGM coverage of the analysis days (share
   of the 288 five‑minute slots with a reading, before any exclusion), per
-  participant; also as a LaTeX table (`InputDescriptives_tables.tex`).
+  participant.
 - `S.CurveAgreement.py` — agreement between the reconstructed median BG curve
   of each participant and its basal‑only simulation (the manual step). The
   criterion used for every participant is Pearson r ≥ 0.5 over the hours the
@@ -202,8 +202,7 @@ simulations kept in the earlier layout (inside `InSilico/simulations/`).
   Shapiro–Wilk, Wilcoxon and a Bonferroni check for the two days (with fewer
   than 3 participants, as in the demo, only the SDs are reported). It also
   writes the descriptive statistics of the variables of the test
-  (`PowerTestDescriptives.csv`, `PowerTestDescriptives_table.tex`) for the data
-  appendix of the thesis.
+  (`PowerTestDescriptives.csv`) for the data appendix of the thesis.
 - `G.Figures.py` — the figures of the manuscript, sized to be legible at the
   width at which they are printed; both days share the same axis limits.
 - `G.CurveCheck.py` — per participant, the reconstructed and simulated curves

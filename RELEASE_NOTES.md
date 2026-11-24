@@ -76,8 +76,7 @@ Compared with v1.0.2:
 - `metrics/G.TrimmedHoursCheck.py`: checks that the trimmed hours match those
   of the guide construction.
 - `metrics/S.InputDescriptives.py`: CGM coverage of the analysis days per
-  participant, for the data appendix of the thesis chapter, also as a LaTeX
-  table.
+  participant, for the data appendix of the thesis chapter.
 - Figure 1 of the manuscript: `InVivo/12.MergeRChBasalNoActZenodo.py` saves
   the figure of the illustrative participant (`ILLUSTRATIVE_ID`, 2308) to
   `results/invivo/figures/`.
@@ -91,7 +90,7 @@ Compared with v1.0.2:
 - `S.PowerAnalysisTest.py` skips the test with fewer than 3 participants (as in
   the demo) and reports only the SDs; it also writes mean (SD), median (Q1–Q3)
   and range of the variables of the test, for the data appendix of the thesis
-  (`PowerTestDescriptives.csv`, `PowerTestDescriptives_table.tex`).
+  (`PowerTestDescriptives.csv`).
 
 - Method parameters are set once in `globals.py` and read by every script
   that uses them: `N_MEALS` (4), `MEAL_WINDOW_HOURS` (6), `LEAD_HOURS` (2),

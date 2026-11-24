@@ -240,8 +240,8 @@ The recommended basal profile of each participant is written by InSilico step
 
 ### Additional analyses (data appendix of the thesis)
 
-- **`metrics/tables/PowerTestDescriptives.csv`, `PowerTestDescriptives_table.tex`** — descriptive statistics of the variables of the planned test.
-- **`metrics/tables/InputDescriptives_*.csv`, `InputDescriptives_tables.tex`** — CGM coverage of the analysis days.
+- **`metrics/tables/PowerTestDescriptives.csv`** — descriptive statistics of the variables of the planned test.
+- **`metrics/tables/InputDescriptives_*.csv`** — CGM coverage of the analysis days.
 
 ### Diagnostic
 

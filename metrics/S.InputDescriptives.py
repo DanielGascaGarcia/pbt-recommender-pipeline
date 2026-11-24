@@ -24,7 +24,6 @@ Inputs
 Outputs (in results/metrics/tables/)
     InputDescriptives_by_participant.csv
     InputCoverage_by_day.csv
-    InputDescriptives_tables.tex   the coverage table of the data appendix, LaTeX
 
 Notes
     - Descriptive only: no day or participant is excluded by coverage, and
@@ -115,43 +114,3 @@ print(f"\nCohort: {len(d)} analysis days, mean coverage {d['coverage_pct'].mean(
 print("Saved:", os.path.abspath(OUT + "InputDescriptives_by_participant.csv"))
 print("Saved:", os.path.abspath(OUT + "InputCoverage_by_day.csv"))
 
-
-# -----------------------------------------------------------#
-# LaTeX table of the data appendix, in the format of the appendix
-# sections of the chapters of papers 1 and 2 (same columns and summary row)
-# -----------------------------------------------------------#
-def f1(x, n=1):
-    return f"{x:.{n}f}"
-
-
-# LaTeX table: one row per participant and a summary row (days mean (SD)
-# [range]; coverage mean (SD); mean % of days >= 70%).
-days = t["Analysis_days"]
-tex = [r"""% Data appendix of the chapter of paper 3: CGM coverage.
-% Written by metrics/S.InputDescriptives.py.
-\begin{table}[htbp]
-\centering
-\small
-\caption{CGM coverage per participant, Chapter~\ref{Chap:Paper3}. Days: analysis days. Coverage: percentage of the 288 five-minute slots of each day with at least one reading, before the exclusion of the post-meal windows, summarised over days. Days $\geq$70\%: days with coverage of at least 70\%. SD: standard deviation.}
-% Source: InputDescriptives_by_participant.csv
-\label{tab:P3_CGMCoverage}
-\begin{tabular}{|l|c|c|c|c|c|}
-\hline
-\textbf{ID} & \textbf{Days} & \makecell{\textbf{Coverage}\\\textbf{mean (\%)}} & \makecell{\textbf{Coverage}\\\textbf{median (\%)}} & \makecell{\textbf{Coverage}\\\textbf{min (\%)}} & \makecell{\textbf{Days $\geq$70\%}\\\textbf{n (\%)}} \\
-\hline"""]
-for _, x in t.iterrows():
-    tex.append(f"{x.Label} & {int(x.Analysis_days)} & {f1(x.Coverage_mean_pct)} & {f1(x.Coverage_median_pct)} & "
-               f"{f1(x.Coverage_min_pct)} & {int(x.Days_ge70_coverage)} ({f1(x.Days_ge70_pct)}) \\\\")
-tex.append(r"""\hline
-\multicolumn{6}{|l|}{\textit{Summary: days, mean (SD) [range]; coverage, mean (SD); days $\geq$70\%, mean percentage}} \\
-\hline""")
-tex.append(f"All (n={len(t)}) & {days.mean():.1f} ({days.std(ddof=1):.1f}) [{int(days.min())}--{int(days.max())}] & "
-           f"{t['Coverage_mean_pct'].mean():.1f} ({t['Coverage_mean_pct'].std(ddof=1):.1f}) & & & "
-           f"{t['Days_ge70_pct'].mean():.1f}\\% \\\\")
-tex.append(r"""\hline
-\end{tabular}
-\end{table}
-""")
-with open(OUT + "InputDescriptives_tables.tex", "w", encoding="utf-8") as fh:
-    fh.write("\n".join(tex))
-print("Saved:", os.path.abspath(OUT + "InputDescriptives_tables.tex"))
